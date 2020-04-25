@@ -17,8 +17,12 @@
 engine.name = 'Ack'
 
 local Ack = require 'ack/lib/ack'
+local UI = require 'ui'
 local Sequencer = include('lib/sequencer')
-local UI = include('lib/ui/util/devices')
+local DetailsUI = include('lib/ui/details')
+local PatternUI = include('lib/ui/pattern')
+local DensityUI = include('lib/ui/density')
+local UIState = include('lib/ui/util/devices')
 
 local TRIG_LEVEL = 15
 local PLAYPOS_LEVEL = 7
@@ -29,44 +33,30 @@ local MAX_GRID_WIDTH = 16
 local HEIGHT = 8
 
 local sequencer
+local pages
+local pages_table
+local ui_refresh_metro
 
 local function init_params()
-  params:add {
-    type="option",
-    id="last_row_cuts",
-    name="Last Row Cuts",
-    options={"No", "Yes"},
-    default=1
-  }
-
-  params:add {
-    type="option",
-    id="cut_quant",
-    name="Quantize Cutting",
-    options={"No", "Yes"},
-    default=1
-  }
-
   sequencer:add_params()
-
+  for i, page in ipairs(pages_table) do
+    pages_table[i]:add_params()
+  end
   params:add_separator()
-
   Ack.add_params()
 end
 
-local function cutting_is_enabled()
-  return params:get("last_row_cuts") == 2
-end
-
 local function init_60_fps_ui_refresh_metro()
-  local ui_refresh_metro = metro.init()
-  ui_refresh_metro.event = UI.refresh
+  ui_refresh_metro = metro.init()
+  ui_refresh_metro.event = UIState.refresh
   ui_refresh_metro.time = 1/60
   ui_refresh_metro:start()
 end
 
 local function init_ui()
-  UI.init_arc {
+  pages = UI.Pages.new(1, #pages_table)
+
+  UIState.init_arc {
     device = arc.connect(),
     delta_callback = function(n, delta)
       if n == 1 then
@@ -84,13 +74,13 @@ local function init_ui()
     end
   }
 
-  UI.init_grid {
+  UIState.init_grid {
     device = grid.connect(),
     key_callback = function(x, y, state)
       if state == 1 then
-        if cutting_is_enabled() and y == 8 then
+        if y == 8 then
           sequencer.queued_playpos = x-1
-          UI.screen_dirty = true
+          UIState.screen_dirty = true
         else
           set_trig(
           sequencer:set_trig(
@@ -99,14 +89,14 @@ local function init_ui()
             y,
             not sequencer:trig_is_set(params:get("pattern"), x, y)
           )
-          UI.grid_dirty = true
+          UIState.grid_dirty = true
         end
       end
-      UI.flash_event()
+      UIState.flash_event()
     end,
     refresh_callback = function(my_grid)
       local function refresh_grid_button(x, y)
-        if cutting_is_enabled() and y == 8 then
+        if y == 8 then
           if x-1 == sequencer.playpos then
             my_grid:led(x, y, PLAYPOS_LEVEL)
           else
@@ -142,7 +132,7 @@ local function init_ui()
     end
   }
 
-  UI.init_screen {
+  UIState.init_screen {
     refresh_callback = function()
       redraw()
     end
@@ -153,6 +143,12 @@ end
 
 function init()
   sequencer = Sequencer:new()
+  pages_table = {
+    DetailsUI:new(),
+    -- TODO: there's probably no need to have these be two separate pages. just one page, six knobs?
+    PatternUI:new(),
+    DensityUI:new(),
+  }
 
   init_params()
   init_ui()
@@ -173,125 +169,41 @@ function cleanup()
     my_grid:all(0)
     my_grid:refresh()
   end
+
+  metro.free(ui_refresh_metro.id)
+  ui_refresh_metro = nil
+  -- for i, page in ipairs(pages_table) do
+  --   pages_table[i]:cleanup()
+  --   pages_table[i] = nil
+  -- end
+  pages_table = nil
+  pages = nil
+end
+
+local function current_page()
+  return pages_table[pages.index]
 end
 
 function redraw()
-  local hi_level = 15
-  local lo_level = 4
-
-  local enc1_x = 0
-  local enc1_y = 12
-
-  local enc2_x = 16
-  local enc2_y = 32
-
-  local enc3_x = enc2_x+45
-  local enc3_y = enc2_y
-
-  local key2_x = 0
-  local key2_y = 63
-
-  local key3_x = key2_x+45
-  local key3_y = key2_y
-
-  local function redraw_enc1_widget()
-    screen.move(enc1_x, enc1_y)
-    screen.level(lo_level)
-    screen.text("LEVEL")
-    screen.move(enc1_x+45, enc1_y)
-    screen.level(hi_level)
-    screen.text(util.round(mix:get_raw("output")*100, 1))
-  end
-
-  local function redraw_event_flash_widget()
-    screen.level(lo_level)
-    screen.rect(122, enc1_y-7, 5, 5)
-    screen.fill()
-  end
-
-  local function redraw_enc2_widget()
-    screen.move(enc2_x, enc2_y)
-    screen.level(lo_level)
-    screen.text("BPM")
-    screen.move(enc2_x, enc2_y+12)
-    screen.level(hi_level)
-    screen.text(util.round(params:get("tempo"), 1))
-  end
-
-  local function redraw_enc3_widget()
-    screen.move(enc3_x, enc3_y)
-    screen.level(lo_level)
-    screen.text("SWING")
-    screen.move(enc3_x, enc3_y+12)
-    screen.level(hi_level)
-    screen.text(util.round(params:get("swing_amount"), 1))
-    screen.text("%")
-  end
-
-  local function redraw_key2_widget()
-    screen.move(key2_x, key2_y)
-    if sequencer.playing then
-      screen.level(lo_level)
-    else
-      screen.level(hi_level)
-    end
-    screen.text("STOP")
-  end
-
-  local function redraw_key3_widget()
-    screen.move(key3_x, key3_y)
-    if sequencer.playing then
-      screen.level(hi_level)
-    else
-      screen.level(lo_level)
-    end
-    screen.text("PLAY")
-
-    if sequencer.playing then
-      screen.move(key3_x+44, key3_y)
-      screen.level(hi_level)
-      screen.text(sequencer.playpos+1)
-    end
-  end
-
-  screen.font_size(16)
   screen.clear()
-
-  redraw_enc1_widget()
-
-  if UI.show_event_indicator then
-    redraw_event_flash_widget()
-  end
-
-  redraw_enc2_widget()
-  redraw_enc3_widget()
-  redraw_key2_widget()
-  redraw_key3_widget()
-
+  pages:redraw()
+  current_page():redraw(sequencer)
   screen.update()
 end
 
 function enc(n, delta)
   if n == 1 then
-    mix:delta("output", delta)
-    UI.screen_dirty = true
-  elseif n == 2 then
-    params:delta("tempo", delta)
-  elseif n == 3 then
-    params:delta("swing_amount", delta)
+    -- E1 changes page
+    pages:set_index_delta(util.clamp(delta, -1, 1), false)
+    -- current_page():enter()
+    UIState.screen_dirty = true
+  else
+    -- Other encoders are routed to the current page's class
+    current_page():enc(n, delta, sequencer)
   end
 end
 
-function key(n, s)
-  if n == 2 and s == 1 then
-    if sequencer.playing == false then
-      sequencer:move_to_start()
-      UI.grid_dirty = true
-    else
-      sequencer:stop()
-    end
-  elseif n == 3 and s == 1 then
-    sequencer:start()
-  end
-  UI.screen_dirty = true
+function key(n, z)
+  -- All key presses are routed to the current page's class.
+  current_page():key(n, z, sequencer)
 end

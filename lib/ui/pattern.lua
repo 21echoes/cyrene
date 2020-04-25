@@ -6,7 +6,7 @@ local Label = include("lib/ui/util/label")
 
 local PatternUI = {}
 
-function PatternUI:new(bypass_by_default)
+function PatternUI:new()
   i = {}
   setmetatable(i, self)
   self.__index = self

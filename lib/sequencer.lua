@@ -52,6 +52,14 @@ function Sequencer:add_params()
   }
 
   params:add {
+    type="option",
+    id="cut_quant",
+    name="Quantize Cutting",
+    options={"No", "Yes"},
+    default=1
+  }
+
+  params:add {
     type="number",
     id="beats_per_pattern",
     name="Beats Per Pattern",
@@ -195,14 +203,14 @@ function Sequencer:tick()
       self.playpos = (self.playpos + 1) % self:get_pattern_length()
     end
     local ts = {}
-    for y=1,8 do
-      if self:trig_is_set(params:get("pattern"), self.playpos+1, y) then -- and not (cutting_is_enabled() and y == 8) then
+    for y=1,7 do
+      if self:trig_is_set(params:get("pattern"), self.playpos+1, y) then
         ts[y] = 1
       else
         ts[y] = 0
       end
     end
-    engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], ts[8])
+    engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], 0)
 
     if previous_playpos ~= -1 then
       UI.grid_dirty = true

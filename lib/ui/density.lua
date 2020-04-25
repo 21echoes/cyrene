@@ -6,7 +6,7 @@ local Label = include("lib/ui/util/label")
 
 local DensityUI = {}
 
-function DensityUI:new(bypass_by_default)
+function DensityUI:new()
   i = {}
   setmetatable(i, self)
   self.__index = self
