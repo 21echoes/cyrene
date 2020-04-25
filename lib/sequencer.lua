@@ -119,7 +119,7 @@ function Sequencer:set_trig(patternno, x, y, value)
   self.trigs[patternno][y][x] = value
 end
 
-function Sequencer:trig_is_set(patternno, x, y)
+function Sequencer:trig_level(patternno, x, y)
   return self.trigs[patternno][y][x]
 end
 
@@ -129,8 +129,7 @@ function Sequencer:_init_trigs()
     for y=1,HEIGHT do
       self.trigs[patternno][y] = {}
       for x=1,MAX_GRID_WIDTH do
-        -- TODO: port the values in the array and on disk to 255-based for probabilities
-        self.trigs[patternno][y][x] = false
+        self.trigs[patternno][y][x] = 0
       end
     end
   end
@@ -161,13 +160,7 @@ function Sequencer:save_patterns()
   for patternno=1,NUM_PATTERNS do
     for y=1,HEIGHT do
       for x=1,MAX_GRID_WIDTH do
-        local int
-        if self:trig_is_set(patternno, x, y) then
-          int = 1
-        else
-          int = 0
-        end
-        io.write(int .. "\n")
+        io.write(self:trig_level(patternno, x, y) .. "\n")
       end
     end
   end
@@ -181,7 +174,8 @@ function Sequencer:load_patterns()
     for patternno=1,NUM_PATTERNS do
       for y=1,HEIGHT do
         for x=1,MAX_GRID_WIDTH do
-          self:set_trig(patternno, x, y, tonumber(io.read()) == 1)
+          -- self:set_trig(patternno, x, y, tonumber(io.read()))
+          self:set_trig(patternno, x, y, math.random(0, 255))
         end
       end
     end
@@ -204,18 +198,22 @@ function Sequencer:tick()
     end
     local ts = {}
     for y=1,7 do
-      if self:trig_is_set(params:get("pattern"), self.playpos+1, y) then
-        ts[y] = 1
+      local trig_level = self:trig_level(params:get("pattern"), self.playpos+1, y)
+      local threshold
+      if y == 1 then
+        threshold = 255 - params:get("kick_density")
+      elseif y == 2 then
+        threshold = 255 - params:get("snare_density")
+      elseif y == 3 then
+        threshold = 255 - params:get("hat_density")
       else
-        ts[y] = 0
+        threshold = math.random(0, 255)
       end
+      ts[y] = trig_level > threshold and 1 or 0
     end
     engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], 0)
 
-    if previous_playpos ~= -1 then
-      UI.grid_dirty = true
-    end
-    if self.playpos ~= -1 then
+    if previous_playpos ~= -1 or self.playpos ~= -1 then
       UI.grid_dirty = true
     end
     if self.playpos % 2 == 0 then

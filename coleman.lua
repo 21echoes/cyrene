@@ -82,12 +82,11 @@ local function init_ui()
           sequencer.queued_playpos = x-1
           UIState.screen_dirty = true
         else
-          set_trig(
           sequencer:set_trig(
             params:get("pattern"),
             x,
             y,
-            not sequencer:trig_is_set(params:get("pattern"), x, y)
+            sequencer:trig_level(params:get("pattern"), x, y) == 0 and 255 or 0
           )
           UIState.grid_dirty = true
         end
@@ -103,8 +102,10 @@ local function init_ui()
             my_grid:led(x, y, CLEAR_LEVEL)
           end
         else
-          if sequencer:trig_is_set(params:get("pattern"), x, y) then
-            my_grid:led(x, y, TRIG_LEVEL)
+          local trig_level = sequencer:trig_level(params:get("pattern"), x, y)
+          local grid_trig_level = math.ceil((trig_level / 255) * TRIG_LEVEL)
+          if grid_trig_level > 0 then
+            my_grid:led(x, y, grid_trig_level)
           elseif x-1 == sequencer.playpos then
             my_grid:led(x, y, PLAYPOS_LEVEL)
           else
@@ -142,6 +143,8 @@ local function init_ui()
 end
 
 function init()
+  math.randomseed(os.time())
+
   sequencer = Sequencer:new()
   pages_table = {
     DetailsUI:new(),
