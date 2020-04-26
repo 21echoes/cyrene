@@ -30,6 +30,7 @@ function Sequencer:new()
   i.queued_playpos = nil
   i.grids_x = nil
   i.grids_y = nil
+  i.part_perturbation = 0
 
   return i
 end
@@ -232,16 +233,26 @@ function Sequencer:tick()
     local patternno = params:get("pattern")
     -- Update the triggers to match the selected MI-Grids X and Y parameters
     self:set_grids_xy(patternno, params:get("grids_pattern_x"), params:get("grids_pattern_y"))
+    -- If there's a queued cut, set it and forget it
     local previous_playpos = self.playpos
     if self.queued_playpos then
       self.playpos = self.queued_playpos
       self.queued_playpos = nil
     else
+      -- otherwise, advance by a beat
       self.playpos = (self.playpos + 1) % self:get_pattern_length()
     end
+    if self.playpos == 0 then
+      -- At the start of the pattern, figure out how much to bump up our trigger level by based on the chaos parameter
+      local chaos = math.floor(params:get("pattern_chaos") / 4)
+      local random_byte = math.random(0, 255)
+      self.part_perturbation = math.floor(random_byte * chaos / 256)
+    end
+
     local ts = {}
     for y=1,7 do
       local trig_level = self:trig_level(patternno, self.playpos+1, y)
+      trig_level = util.clamp(trig_level + self.part_perturbation, 0, 255)
       local threshold
       if y == 1 then
         threshold = 255 - params:get("kick_density")
@@ -259,6 +270,7 @@ function Sequencer:tick()
     if previous_playpos ~= -1 or self.playpos ~= -1 then
       UI.grid_dirty = true
     end
+    -- Figure out how many ticks to wait for the next beat, based on swing
     if self.playpos % 2 == 0 then
       self.ticks_to_next = self.even_ppqn
     else
