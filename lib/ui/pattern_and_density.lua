@@ -37,54 +37,70 @@ end
 
 function PatternAndDensityUI:add_params()
   params:add {
-    type="control",
+    type="number",
     id="grids_pattern_x",
     name="Pattern X",
-    controlspec=ControlSpec.new(0, 255, 'lin', 1, 0, ""),
+    min=0,
+    max=255,
+    default=0,
     action=function(value) UIState.screen_dirty = true end
   }
   params:add {
-    type="control",
+    type="number",
     id="grids_pattern_y",
     name="Pattern Y",
-    controlspec=ControlSpec.new(0, 255, 'lin', 1, 0, ""),
+    min=0,
+    max=255,
+    default=0,
     action=function(value) UIState.screen_dirty = true end
   }
   params:add {
-    type="control",
+    type="number",
     id="pattern_chaos",
     name="Chaos",
-    controlspec=ControlSpec.new(0, 100, 'lin', 1, 50, "%"),
+    min=0,
+    max=100,
+    default=0,
+    formatter=function(param) return param.value .. "%" end,
     action=function(value)
       self.chaos_val_label.text = value
       UIState.screen_dirty = true
     end
   }
   params:add {
-    type="control",
+    type="number",
     id="kick_density",
     name="Kick Density",
-    controlspec=ControlSpec.new(0, 100, 'lin', 1, 50, "%"),
+    min=0,
+    max=100,
+    default=50,
+    formatter=function(param) return param.value .. "%" end,
     action=function(value)
       self.kick_val_label.text = value
       UIState.screen_dirty = true
     end
   }
   params:add {
-    type="control",
+    type="number",
     id="snare_density",
     name="Snare Density",
-    controlspec=ControlSpec.new(0, 100, 'lin', 1, 50, "%"),
+    min=0,
+    max=100,
+    default=50,
+    formatter=function(param) return param.value .. "%" end,
     action=function(value)
       self.snare_val_label.text = value
       UIState.screen_dirty = true
     end
   }
   params:add {
-    type="control",
+    type="number",
     id="hat_density",
     name="Hi-Hat Density",
-    controlspec=ControlSpec.new(0, 100, 'lin', 1, 50, "%"),
+    min=0,
+    max=100,
+    default=50,
+    formatter=function(param) return param.value .. "%" end,
     action=function(value)
       self.hat_val_label.text = value
       UIState.screen_dirty = true
