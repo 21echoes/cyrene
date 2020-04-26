@@ -20,8 +20,7 @@ local Ack = require 'ack/lib/ack'
 local UI = require 'ui'
 local Sequencer = include('lib/sequencer')
 local DetailsUI = include('lib/ui/details')
-local PatternUI = include('lib/ui/pattern')
-local DensityUI = include('lib/ui/density')
+local PatternAndDensityUI = include('lib/ui/pattern_and_density')
 local UIState = include('lib/ui/util/devices')
 
 local TRIG_LEVEL = 15
@@ -148,9 +147,7 @@ function init()
   sequencer = Sequencer:new()
   pages_table = {
     DetailsUI:new(),
-    -- TODO: there's probably no need to have these be two separate pages. just one page, six knobs?
-    PatternUI:new(),
-    DensityUI:new(),
+    PatternAndDensityUI:new(),
   }
 
   init_params()

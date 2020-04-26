@@ -244,7 +244,7 @@ function Sequencer:tick()
     end
     if self.playpos == 0 then
       -- At the start of the pattern, figure out how much to bump up our trigger level by based on the chaos parameter
-      local chaos = math.floor(params:get("pattern_chaos") / 4)
+      local chaos = math.floor(params:get("pattern_chaos") * 255 / 100 / 4)
       local random_byte = math.random(0, 255)
       self.part_perturbation = math.floor(random_byte * chaos / 256)
     end
@@ -255,11 +255,11 @@ function Sequencer:tick()
       trig_level = util.clamp(trig_level + self.part_perturbation, 0, 255)
       local threshold
       if y == 1 then
-        threshold = 255 - params:get("kick_density")
+        threshold = 255 - util.round(params:get("kick_density") * 255 / 100)
       elseif y == 2 then
-        threshold = 255 - params:get("snare_density")
+        threshold = 255 - util.round(params:get("snare_density") * 255 / 100)
       elseif y == 3 then
-        threshold = 255 - params:get("hat_density")
+        threshold = 255 - util.round(params:get("hat_density") * 255 / 100)
       else
         threshold = math.random(0, 255)
       end
