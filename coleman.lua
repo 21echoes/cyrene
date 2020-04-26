@@ -1,18 +1,35 @@
 -- Coleman, a drummer in a box
 --
--- Pattern page:
--- E2 & E3 control pattern
--- E1 adds randomness
+-- E1 controls page
 --
--- Density page:
--- E1, E2, & E3 control
--- hat, kick, snare
+-- Landing page:
+-- E2 controls tempo
+-- E3 controls swing
+-- K2+E2 controls volume
+-- K2 stops playback
+-- K3 resumes playback
+-- K2 while stopped
+--  resets to beat 1
+--
+-- Pattern & Density page:
+-- K2 & K3 switch sections
+-- E2 & E3 change values
+--
+-- Grid (optional):
+-- Rows are tracks
+-- First 3: kick, snare, hat
+-- Columns are beats
+-- Key toggles trigger
+-- Last row changes
+--  playback position
+--
 --
 -- Adapted from Grids
 --   by Emilie Gillet
 -- and Step, by @jah
 --
--- v0.0.1 @21echoes
+--
+-- v0.1.0 @21echoes
 
 engine.name = 'Ack'
 

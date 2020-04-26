@@ -115,14 +115,9 @@ function PatternAndDensityUI:enc(n, delta, sequencer)
 end
 
 function PatternAndDensityUI:key(n, z, sequencer)
-  if n == 2 then
-    if z == 1 then
-      self._alt_key_down_time = util.time()
-    else
-      self._alt_key_down_time = nil
-    end
-  elseif n == 3 and z == 1 then
-    self._section = (self._section + 1) % 3
+  if (n == 2 or n == 3) and z == 1 then
+    local direction = n == 2 and -1 or 1
+    self._section = (self._section + direction + 3) % 3
     self:_update_active_section()
   end
 end
