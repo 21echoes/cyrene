@@ -60,6 +60,25 @@ local function init_params()
   end
   params:add_separator()
   Ack.add_params()
+
+  local is_first_launch = not sequencer:has_pattern_file()
+  if is_first_launch then
+    local bd_path = _path.dust .. "audio/common/808/808-BD.wav"
+    if util.file_exists(bd_path) then
+      params:set("1_sample", bd_path)
+      params:set("1_vol", -10.0)
+    end
+    local sd_path = _path.dust .. "audio/common/808/808-SD.wav"
+    if util.file_exists(sd_path) then
+      params:set("2_sample", sd_path)
+      params:set("2_vol", -20.0)
+    end
+    local ch_path = _path.dust .. "audio/common/808/808-CH.wav"
+    if util.file_exists(ch_path) then
+      params:set("3_sample", ch_path)
+      params:set("3_vol", -15.0)
+    end
+  end
 end
 
 local function init_60_fps_ui_refresh_metro()

@@ -295,4 +295,8 @@ function Sequencer:_init_sequencer_metro()
   self.sequencer_metro.event = function() self:tick() end
 end
 
+function Sequencer:has_pattern_file()
+  return util.file_exists(norns.state.data .. PATTERN_FILE,"r")
+end
+
 return Sequencer
