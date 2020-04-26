@@ -8,7 +8,7 @@ local PATTERN_FILE = "step.data"
 local NUM_PATTERNS = 99
 local ppqn = 24
 
--- TODO: these are duplicated in coleman.lua
+-- TODO: these are duplicated in cyrene.lua
 local MAX_GRID_WIDTH = 16
 local HEIGHT = 8
 

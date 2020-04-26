@@ -1,4 +1,4 @@
--- Coleman, a drummer in a box
+-- Cyrene, a drummer in a box
 --
 -- E1 controls page
 --
