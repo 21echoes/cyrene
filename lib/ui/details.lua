@@ -7,6 +7,7 @@ local UIState = include('lib/ui/util/devices')
 
 local hi_level = 15
 local lo_level = 4
+local CLICK_DURATION = 0.7
 
 local DetailsUI = {}
 
@@ -32,6 +33,9 @@ function DetailsUI:new()
   i.play_label = Label.new({x=45, y=63, text="PLAY", font_size=font_size})
   i.playpos_label = Label.new({x=99, y=63, level=hi_level, font_size=font_size})
 
+  i._alt_key_down_time = nil
+  i._alt_action_taken = false
+
   return i
 end
 
@@ -40,19 +44,36 @@ function DetailsUI:add_params()
 end
 
 function DetailsUI:enc(n, delta, sequencer)
-  if n == 1 then
-    -- TODO: this can never happen, as the root script eats E1. Perhaps an alt mode?
+  if self._alt_key_down_time then
+    self._alt_action_taken = true
     mix:delta("output", delta)
     UIState.screen_dirty = true
-  elseif n == 2 then
-    params:delta("tempo", delta)
-  elseif n == 3 then
-    params:delta("swing_amount", delta)
+  else
+    if n == 2 then
+      params:delta("tempo", delta)
+    elseif n == 3 then
+      params:delta("swing_amount", delta)
+    end
   end
 end
 
 function DetailsUI:key(n, z, sequencer)
-  if n == 2 and z == 1 then
+  if n == 2 then
+    if z == 1 then
+      self._alt_key_down_time = util.time()
+      return
+    end
+
+    -- Key up on K2 after an alt action was taken, or even just after a longer held time, counts as nothing
+    if self._alt_key_down_time then
+      local key_down_duration = util.time() - self._alt_key_down_time
+      self._alt_key_down_time = nil
+      if self._alt_action_taken or key_down_duration > CLICK_DURATION then
+        self._alt_action_taken = false
+        return
+      end
+    end
+
     if sequencer.playing == false then
       sequencer:move_to_start()
       UIState.grid_dirty = true
