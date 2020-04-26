@@ -179,8 +179,7 @@ function Sequencer:load_patterns()
     for patternno=1,NUM_PATTERNS do
       for track=1,HEIGHT do
         for step=1,MAX_GRID_WIDTH do
-          -- self:set_trig(patternno, x, y, tonumber(io.read()))
-          self:set_trig(patternno, step, track, math.random(0, 255))
+          self:set_trig(patternno, step, track, tonumber(io.read()))
         end
       end
     end
