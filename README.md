@@ -8,6 +8,7 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 * E1 controls page
 
 ### Landing page:
+![landing](screenshots/landing.png)
 * E2 controls tempo
 * E3 controls swing
 * K2+E2 controls volume
@@ -15,6 +16,7 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 * K2 while stopped resets pattern to the first beat
 
 ### Pattern & Density page:
+![pattern-and-density](screenshots/pattern-and-density.png)
 * K2 and K3 cycle through the sections of the page
 * E2 & E3 control selected values (X/Y, Kick/Snare density, Hat density/Chaos)
 
