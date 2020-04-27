@@ -23,13 +23,16 @@
 -- Last row changes
 --  playback position
 --
+-- Change samples and fx
+--  via the params menu
+--
 --
 -- Adapted from Grids
 --   by Emilie Gillet
 -- and Step, by @jah
 --
 --
--- v0.1.0 @21echoes
+-- v0.9.0 @21echoes
 
 engine.name = 'Ack'
 

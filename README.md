@@ -5,6 +5,7 @@ Based on Mutable Instruments Grids by Émilie Gillet and Step by Anton Hörnquis
 Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patterns (derived from the interpolation of 25 patterns). They are organized such that similar rhythms are positioned near each other in a two-dimentional grid, and the musician is able to select a position in that grid (and change that selection over time). In Cyrene, these rhythms are then fed into a rather direct port of Step for norns, which is a sample based, monome grid-enabled step sequencer using the Ack engine.
 
 ## UI & Controls
+* Change samples (and effects) via the params menu
 * E1 controls page
 
 ### Landing page:
