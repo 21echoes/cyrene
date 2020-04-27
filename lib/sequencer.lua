@@ -11,6 +11,7 @@ local ppqn = 24
 -- TODO: these are duplicated in cyrene.lua
 local MAX_GRID_WIDTH = 16
 local HEIGHT = 8
+local NUM_TRACKS = HEIGHT - 1
 
 local tempo_spec = ControlSpec.new(20, 300, ControlSpec.WARP_LIN, 0, 120, "BPM")
 local swing_amount_spec = ControlSpec.new(0, 100, ControlSpec.WARP_LIN, 0, 0, "%")
@@ -131,7 +132,7 @@ end
 function Sequencer:_init_trigs()
   for patternno=1,NUM_PATTERNS do
     self.trigs[patternno] = {}
-    for y=1,HEIGHT do
+    for y=1,NUM_TRACKS do
       self.trigs[patternno][y] = {}
       for x=1,MAX_GRID_WIDTH do
         self.trigs[patternno][y][x] = 0
@@ -163,7 +164,7 @@ function Sequencer:save_patterns()
   local fd=io.open(norns.state.data .. PATTERN_FILE,"w+")
   io.output(fd)
   for patternno=1,NUM_PATTERNS do
-    for y=1,HEIGHT do
+    for y=1,NUM_TRACKS do
       for x=1,MAX_GRID_WIDTH do
         io.write(self:trig_level(patternno, x, y) .. "\n")
       end
@@ -177,7 +178,7 @@ function Sequencer:load_patterns()
   if fd then
     io.input(fd)
     for patternno=1,NUM_PATTERNS do
-      for track=1,HEIGHT do
+      for track=1,NUM_TRACKS do
         for step=1,MAX_GRID_WIDTH do
           self:set_trig(patternno, step, track, tonumber(io.read()))
         end
