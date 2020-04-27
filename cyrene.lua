@@ -23,7 +23,7 @@
 -- Last row changes
 --  playback position
 --
--- Change samples and fx
+-- Change samples, fx, etc
 --  via the params menu
 --
 --
@@ -75,21 +75,13 @@ local function init_params()
 
   local is_first_launch = not sequencer:has_pattern_file()
   if is_first_launch then
-    local bd_path = _path.dust .. "audio/common/808/808-BD.wav"
-    if util.file_exists(bd_path) then
-      params:set("1_sample", bd_path)
-      params:set("1_vol", -10.0)
-    end
-    local sd_path = _path.dust .. "audio/common/808/808-SD.wav"
-    if util.file_exists(sd_path) then
-      params:set("2_sample", sd_path)
-      params:set("2_vol", -20.0)
-    end
-    local ch_path = _path.dust .. "audio/common/808/808-CH.wav"
-    if util.file_exists(ch_path) then
-      params:set("3_sample", ch_path)
-      params:set("3_vol", -15.0)
-    end
+    _set_sample(1, "audio/common/808/808-BD.wav", -10.0)
+    _set_sample(2, "audio/common/808/808-SD.wav", -20.0)
+    _set_sample(3, "audio/common/808/808-CH.wav", -15.0)
+    _set_sample(4, "audio/common/808/808-OH.wav", -18.0)
+    _set_sample(5, "audio/common/808/808-MA.wav", -12.0)
+    _set_sample(6, "audio/common/808/808-RS.wav", -17.0)
+    _set_sample(7, "audio/common/808/808-HC.wav", -20.0)
   end
 end
 
@@ -257,6 +249,14 @@ end
 function key(n, z)
   -- All key presses are routed to the current page's class.
   current_page():key(n, z, sequencer)
+end
+
+function _set_sample(track, path, volume)
+  local full_path = _path.dust .. path
+  if util.file_exists(full_path) then
+    params:set(track .. "_sample", full_path)
+    params:set(track .. "_vol", volume)
+  end
 end
 
 -- Version management
