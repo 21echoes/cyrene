@@ -31,7 +31,10 @@ function Sequencer:new()
   i.queued_playpos = nil
   i.grids_x = nil
   i.grids_y = nil
-  i.part_perturbation = 0
+  i.part_perturbations = {}
+  for track=1,NUM_TRACKS do
+    i.part_perturbations[track] = 0
+  end
 
   return i
 end
@@ -244,15 +247,20 @@ function Sequencer:tick()
     end
     if self.playpos == 0 then
       -- At the start of the pattern, figure out how much to bump up our trigger level by based on the chaos parameter
-      local chaos = math.floor(params:get("pattern_chaos") * 255 / 100 / 4)
-      local random_byte = math.random(0, 255)
-      self.part_perturbation = math.floor(random_byte * chaos / 256)
+      for track=1,NUM_TRACKS do
+        local chaos = math.floor(params:get("pattern_chaos") * 255 / 100 / 4)
+        local random_byte = math.random(0, 255)
+        self.part_perturbations[track] = math.floor(random_byte * chaos / 256)
+      end
     end
 
     local ts = {}
     for y=1,7 do
       local trig_level = self:trig_level(patternno, self.playpos+1, y)
-      trig_level = util.clamp(trig_level + self.part_perturbation, 0, 255)
+      -- The original MI Grids algorithm makes it possible that a track would trigger on every beat
+      -- If density > ~77%, chaos at 100%, and the random byte rolls full (or if density is higher, chaos can be lower, etc.)
+      -- This seems... wrong to me, so I've made sure that if the trigger map says zero, that means no triggers happen.
+      trig_level = trig_level ~= 0 and util.clamp(trig_level + self.part_perturbations[y], 0, 255) or 0
       local threshold
       if y == 1 then
         threshold = 255 - util.round(params:get("kick_density") * 255 / 100)
