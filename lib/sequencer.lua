@@ -69,13 +69,17 @@ function Sequencer:add_params()
   }
 
   params:add {
-    type="number",
-    id="beats_per_pattern",
-    name="Beats Per Pattern",
-    min=1,
-    max=8,
-    default=4,
-    action=function(val) self:_update_sequencer_metro_time(val) end
+    type="option",
+    id="grid_resolution",
+    name="Grid Resolution",
+    options={"Quarters", "8ths", "16ths", "32nds"},
+    default=3,
+    action=function(val)
+      if self.grids_x ~= nil and self.grids_y ~= nil then
+        self:set_grids_xy(params:get("pattern"), params:get("grids_pattern_x"), params:get("grids_pattern_y"), true)
+      end
+      self:_update_sequencer_metro_time()
+    end
   }
 
   params:add {
@@ -196,11 +200,15 @@ local function u8mix(a, b, mix)
   return util.round(((mix * b) + ((255 - mix) * a)) / 255)
 end
 
-function Sequencer:set_grids_xy(patternno, x, y)
+function Sequencer:set_grids_xy(patternno, x, y, force)
   -- Short-circuit this expensive operation if there's no change
-  if x == self.grids_x and y == self.grids_y then
+  if not force and x == self.grids_x and y == self.grids_y then
     return
   end
+  -- The DrumMap is at 32nd-note resolution,
+  -- so we'll want to set different triggers depending on our desired grid resolution
+  local grid_resolution = self:_grid_resolution()
+  local step_offset_multiplier = math.floor(32/grid_resolution)
   -- Chose four drum map nodes based on the first two bits of x and y
   local i = math.floor(x / 64) + 1 -- (x >> 6) + 1
   local j = math.floor(y / 64) + 1 -- (y >> 6) + 1
@@ -211,7 +219,8 @@ function Sequencer:set_grids_xy(patternno, x, y)
   for track=1,3 do
     local track_offset = ((track - 1) * DrumMap.PATTERN_LENGTH)
     for step=1,MAX_GRID_WIDTH do
-      local offset = track_offset + step
+      local step_offset = (((step - 1) * step_offset_multiplier) % DrumMap.PATTERN_LENGTH) + 1
+      local offset = track_offset + step_offset
       local a = a_map[offset]
       local b = b_map[offset]
       local c = c_map[offset]
@@ -279,7 +288,10 @@ function Sequencer:tick()
       UI.grid_dirty = true
     end
     -- Figure out how many ticks to wait for the next beat, based on swing
-    if self.playpos % 2 == 0 then
+    local is_even_side_swing = self:_is_even_side_swing()
+    if is_even_side_swing == nil then
+      self.ticks_to_next = ppqn
+    elseif is_even_side_swing then
       self.ticks_to_next = self.even_ppqn
     else
       self.ticks_to_next = self.odd_ppqn
@@ -289,8 +301,26 @@ function Sequencer:tick()
   self.ticks_to_next = self.ticks_to_next - 1
 end
 
+function Sequencer:_grid_resolution()
+  local param_grid_resolution = params:get("grid_resolution")
+  if param_grid_resolution == 1 then return 4 end
+  if param_grid_resolution == 2 then return 8 end
+  if param_grid_resolution == 3 then return 16 end
+  return 32
+end
+
 function Sequencer:_update_sequencer_metro_time()
-  self.sequencer_metro.time = 60/params:get("tempo")/ppqn/params:get("beats_per_pattern")
+  local grid_resolution = self:_grid_resolution()
+  self.sequencer_metro.time = 60/params:get("tempo")/ppqn/(grid_resolution/4)
+end
+
+function Sequencer:_is_even_side_swing()
+  -- If resolution is 16th or higher, we do 16th note swing. At 8th notes, we do 8th note swing
+  local grid_resolution = self:_grid_resolution()
+  if grid_resolution == 4 then return nil end
+  if grid_resolution == 8 then return self.playpos % 2 == 0 end
+  if grid_resolution == 16 then return self.playpos % 2 == 0 end
+  return math.floor(self.playpos/2) % 2 == 0
 end
 
 function Sequencer:update_swing(swing_amount)
