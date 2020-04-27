@@ -43,6 +43,9 @@ local DetailsUI = include('lib/ui/details')
 local PatternAndDensityUI = include('lib/ui/pattern_and_density')
 local UIState = include('lib/ui/util/devices')
 
+local launch_version
+local current_version = "0.9.0"
+
 local TRIG_LEVEL = 15
 local PLAYPOS_LEVEL = 7
 local CLEAR_LEVEL = 0
@@ -57,6 +60,12 @@ local pages_table
 local ui_refresh_metro
 
 local function init_params()
+  params:add {
+    id="cyrene_version",
+    name="Cyrene Version",
+    type="text",
+  }
+  params:hide(params.lookup["cyrene_version"])
   sequencer:add_params()
   for i, page in ipairs(pages_table) do
     pages_table[i]:add_params()
@@ -182,6 +191,8 @@ end
 
 function init()
   math.randomseed(os.time())
+  -- Once we care about comparing launch and current versions, use this:
+  -- _check_launch_version()
 
   sequencer = Sequencer:new()
   pages_table = {
@@ -196,6 +207,7 @@ function init()
   sequencer:start()
 
   params:read()
+  params:set("cyrene_version", current_version)
   params:bang()
 end
 
@@ -245,4 +257,38 @@ end
 function key(n, z)
   -- All key presses are routed to the current page's class.
   current_page():key(n, z, sequencer)
+end
+
+-- Version management
+
+function _check_launch_version()
+  local filename = norns.state.data .. norns.state.shortname
+  filename = filename .. "-" .. string.format("%02d",1) .. ".pset"
+  local fd = io.open(filename, "r")
+  if fd then
+    io.close(fd)
+    for line in io.lines(filename) do
+      if not util.string_starts(line, "--") then
+        local id, value = string.match(line, "(\".-\")%s*:%s*(.*)")
+        if id and value then
+          if id == "\"cyrene_version\"" then
+            launch_version = value
+          end
+        end
+      end
+    end
+  end
+end
+
+function _version_gt(a, b)
+  if type(b) ~= "string" then return true end
+  local a_table = a:match("([^.]+).([^.]+).([^.]+)")
+  local b_table = b:match("([^.]+).([^.]+).([^.]+)")
+  if b_table == nil or #b_table ~= 3 then return true end
+  if a_table == nil or #a_table ~= 3 then return false end
+  for i, v in ipairs(a) do
+    if v > b[i] then return true end
+    if v < b[i] then return false end
+  end
+  return false
 end
