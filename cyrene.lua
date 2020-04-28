@@ -53,6 +53,7 @@ local CLEAR_LEVEL = 0
 -- TODO: these are duplicated in sequencer.lua
 local MAX_GRID_WIDTH = 16
 local HEIGHT = 8
+local connected_grid
 
 local sequencer
 local pages
@@ -133,6 +134,7 @@ local function init_ui()
       UIState.flash_event()
     end,
     refresh_callback = function(my_grid)
+      connected_grid = my_grid
       local function refresh_grid_button(x, y)
         if y == 8 then
           if x-1 == sequencer.playpos then
@@ -208,9 +210,9 @@ function cleanup()
 
   sequencer:save_patterns()
 
-  if my_grid.device then
-    my_grid:all(0)
-    my_grid:refresh()
+  if connected_grid and connected_grid.device then
+    connected_grid:all(0)
+    connected_grid:refresh()
   end
 
   metro.free(ui_refresh_metro.id)
