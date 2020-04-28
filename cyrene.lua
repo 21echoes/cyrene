@@ -32,7 +32,7 @@
 -- and Step, by @jah
 --
 --
--- v0.9.0 @21echoes
+-- v0.9.1 @21echoes
 
 engine.name = 'Ack'
 
@@ -44,7 +44,7 @@ local PatternAndDensityUI = include('lib/ui/pattern_and_density')
 local UIState = include('lib/ui/util/devices')
 
 local launch_version
-local current_version = "0.9.0"
+local current_version = "0.9.1"
 
 local TRIG_LEVEL = 15
 local PLAYPOS_LEVEL = 7
