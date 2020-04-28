@@ -42,7 +42,7 @@ function PatternAndDensityUI:add_params()
     name="Pattern X",
     min=0,
     max=255,
-    default=0,
+    default=128,
     action=function(value) UIState.screen_dirty = true end
   }
   params:add {
@@ -51,7 +51,7 @@ function PatternAndDensityUI:add_params()
     name="Pattern Y",
     min=0,
     max=255,
-    default=0,
+    default=128,
     action=function(value) UIState.screen_dirty = true end
   }
   params:add {
@@ -60,7 +60,7 @@ function PatternAndDensityUI:add_params()
     name="Chaos",
     min=0,
     max=100,
-    default=0,
+    default=10,
     formatter=function(param) return param.value .. "%" end,
     action=function(value)
       self.chaos_val_label.text = value
