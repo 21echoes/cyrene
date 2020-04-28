@@ -212,10 +212,10 @@ function Sequencer:set_grids_xy(patternno, x, y, force)
   -- Chose four drum map nodes based on the first two bits of x and y
   local i = math.floor(x / 64) + 1 -- (x >> 6) + 1
   local j = math.floor(y / 64) + 1 -- (y >> 6) + 1
-  local a_map = DrumMap.map[i][j]
-  local b_map = DrumMap.map[i + 1][j]
-  local c_map = DrumMap.map[i][j + 1]
-  local d_map = DrumMap.map[i + 1][j + 1]
+  local a_map = DrumMap.map[j][i]
+  local b_map = DrumMap.map[j + 1][i]
+  local c_map = DrumMap.map[j][i + 1]
+  local d_map = DrumMap.map[j + 1][i + 1]
   for track=1,3 do
     local track_offset = ((track - 1) * DrumMap.PATTERN_LENGTH)
     for step=1,MAX_GRID_WIDTH do
@@ -228,7 +228,7 @@ function Sequencer:set_grids_xy(patternno, x, y, force)
       -- Crossfade between the values at the chosen drum nodes depending on the last 6 bits of x and y
       local x_xfade = (x * 4) % 256 -- x << 2
       local y_xfade = (y * 4) % 256 -- y << 2
-      local trig_level = u8mix(u8mix(a, b, x_xfade), u8mix(c, d, x_xfade), y_xfade)
+      local trig_level = u8mix(u8mix(a, b, y_xfade), u8mix(c, d, y_xfade), x_xfade)
       self:set_trig(patternno, step, track, trig_level)
     end
   end
