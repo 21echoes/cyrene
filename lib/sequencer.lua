@@ -35,6 +35,7 @@ function Sequencer:new()
   for track=1,NUM_TRACKS do
     i.part_perturbations[track] = 0
   end
+  i._clock_id = nil
 
   return i
 end
@@ -78,21 +79,16 @@ function Sequencer:add_params()
       if self.grids_x ~= nil and self.grids_y ~= nil then
         self:set_grids_xy(params:get("pattern"), params:get("grids_pattern_x"), params:get("grids_pattern_y"), true)
       end
-      self:_update_sequencer_metro_time()
+      self:_update_clock_sync_resolution()
     end
   }
 
-  params:add {
-    type="control",
-    id="tempo",
-    name="Tempo",
-    controlspec=tempo_spec,
-    action=function(val)
-      self:_update_sequencer_metro_time(val)
-      UI.screen_dirty = true
-      UI.arc_dirty = true
-    end
-  }
+  local default_tempo_action = params:lookup_param("clock_tempo").action
+  params:set_action("clock_tempo", function(val)
+    default_tempo_action(val)
+    UI.arc_dirty = true
+    UI.screen_dirty = true
+  end)
 
   params:add {
     type="control",
@@ -108,14 +104,16 @@ function Sequencer:add_params()
 end
 
 function Sequencer:initialize()
-  self.sequencer_metro = metro.init()
-  self:_init_sequencer_metro()
+  self:_update_clock_sync_resolution()
   self:load_patterns()
 end
 
 function Sequencer:start()
   self.playing = true
-  self.sequencer_metro:start()
+  if self._clock_id ~= nil then
+    clock.cancel(self._clock_id)
+  end
+  self._clock_id = clock.run(self._clock_tick, self)
 end
 
 function Sequencer:move_to_start()
@@ -125,7 +123,10 @@ end
 
 function Sequencer:stop()
   self.playing = false
-  self.sequencer_metro:stop()
+  if self._clock_id ~= nil then
+    clock.cancel(self._clock_id)
+    self._clock_id = nil
+  end
 end
 
 function Sequencer:set_trig(patternno, step, track, value)
@@ -236,6 +237,13 @@ function Sequencer:set_grids_xy(patternno, x, y, force)
   self.grids_y = y
 end
 
+function Sequencer:_clock_tick()
+  while true do
+    clock.sync(self._clock_sync_resolution)
+    self:tick()
+  end
+end
+
 function Sequencer:tick()
   if queued_playpos and params:get("cut_quant") == 1 then
     self.ticks_to_next = 0
@@ -309,9 +317,8 @@ function Sequencer:_grid_resolution()
   return 32
 end
 
-function Sequencer:_update_sequencer_metro_time()
-  local grid_resolution = self:_grid_resolution()
-  self.sequencer_metro.time = 60/params:get("tempo")/ppqn/(grid_resolution/4)
+function Sequencer:_update_clock_sync_resolution()
+  self._clock_sync_resolution = 4/ppqn/self:_grid_resolution()
 end
 
 function Sequencer:_is_even_side_swing()
@@ -327,11 +334,6 @@ function Sequencer:update_swing(swing_amount)
   local swing_ppqn = ppqn*swing_amount/100*0.75
   self.even_ppqn = util.round(ppqn+swing_ppqn)
   self.odd_ppqn = util.round(ppqn-swing_ppqn)
-end
-
-function Sequencer:_init_sequencer_metro()
-  self:_update_sequencer_metro_time()
-  self.sequencer_metro.event = function() self:tick() end
 end
 
 function Sequencer:has_pattern_file()

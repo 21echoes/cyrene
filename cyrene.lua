@@ -100,8 +100,10 @@ local function init_ui()
     device = arc.connect(),
     delta_callback = function(n, delta)
       if n == 1 then
-        local val = params:get_raw("tempo")
-        params:set_raw("tempo", val+delta/500)
+        if params:get("clock_source") == 1 then
+          local val = params:get_raw("clock_tempo")
+          params:set("clock_tempo", val+delta/500)
+        end
       elseif n == 2 then
         local val = params:get_raw("swing_amount")
         params:set_raw("swing_amount", val+delta/500)
@@ -109,7 +111,7 @@ local function init_ui()
     end,
     refresh_callback = function(my_arc)
       my_arc:all(0)
-      my_arc:led(1, util.round(params:get_raw("tempo")*64), 15)
+      my_arc:led(1, util.round(params:get("clock_tempo")*64), 15)
       my_arc:led(2, util.round(params:get_raw("swing_amount")*64), 15)
     end
   }
@@ -251,6 +253,18 @@ end
 function key(n, z)
   -- All key presses are routed to the current page's class.
   current_page():key(n, z, sequencer)
+end
+
+function clock.transport.start()
+  if sequencer then
+    sequencer:start()
+  end
+end
+
+function clock.transport.stop()
+  if sequencer then
+    sequencer:stop()
+  end
 end
 
 function _set_sample(track, path, volume)
