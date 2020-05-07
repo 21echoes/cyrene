@@ -24,7 +24,11 @@
 --  playback position
 -- Bottom right is alt,
 --  hold & click bottom left
---  to change page
+--    to change page
+--  hold & click a track
+--    for probability editing
+--    then click next to alt
+--    to go back
 --
 -- Change samples, fx, etc
 --  via the params menu
