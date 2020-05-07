@@ -133,7 +133,7 @@ function Sequencer:set_trig(patternno, step, track, value)
 end
 
 function Sequencer:trig_level(patternno, x, y)
-  return self.trigs[patternno][y][x]
+  return self.trigs[patternno][y][x] or 0
 end
 
 function Sequencer:_init_trigs()
@@ -189,7 +189,7 @@ function Sequencer:load_patterns()
     for patternno=1,NUM_PATTERNS do
       for track=1,NUM_TRACKS do
         for step=1,MAX_PATTERN_LENGTH do
-          self:set_trig(patternno, step, track, tonumber(io.read()))
+          self:set_trig(patternno, step, track, tonumber(io.read()) or 0)
         end
       end
     end
