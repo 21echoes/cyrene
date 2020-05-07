@@ -20,9 +20,9 @@ function PatternAndDensityUI:new()
 
   local font_size = 16
   i.kick_title_label = Label.new({x=66, y=14, text="KIK", font_size=font_size})
-  i.kick_val_label = Label.new({x=66, y=30, font_size=font_size})
+  i.kick_val_label = Label.new({x=66, y=28, font_size=font_size})
   i.snare_title_label = Label.new({x=96, y=14, text="SNR", font_size=font_size})
-  i.snare_val_label = Label.new({x=96, y=30, font_size=font_size})
+  i.snare_val_label = Label.new({x=96, y=28, font_size=font_size})
   i.hat_title_label = Label.new({x=66, y=49, text="HAT", font_size=font_size})
   i.hat_val_label = Label.new({x=66, y=63, font_size=font_size})
   i.chaos_title_label = Label.new({x=96, y=49, text=" !?", font_size=font_size})

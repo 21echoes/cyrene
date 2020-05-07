@@ -21,6 +21,10 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 * K2 and K3 cycle through the sections of the page
 * E2 & E3 control selected values (X/Y, Kick/Snare density, Hat density/Chaos)
 
+### More Densities page:
+* K2 and K3 cycle through the sections of the page
+* E2 & E3 control selected values (densities for tracks 4 thru 7)
+
 ### Grid (optional)
 * Each row is a track, with the first 3 being kick, snare, and hi-hat respectively
 * Each column is a beat in the sequence

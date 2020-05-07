@@ -15,6 +15,10 @@
 -- K2 & K3 switch sections
 -- E2 & E3 change values
 --
+-- More Densities page:
+-- K2 & K3 switch sections
+-- E2 & E3 change values
+--
 -- Grid (optional):
 -- Rows are tracks
 -- First 3: kick, snare, hat
@@ -48,6 +52,7 @@ local UI = require 'ui'
 local Sequencer = include('lib/sequencer')
 local DetailsUI = include('lib/ui/details')
 local PatternAndDensityUI = include('lib/ui/pattern_and_density')
+local MoreDensityUI = include('lib/ui/more_density')
 local UIState = include('lib/ui/util/devices')
 local GridUI = include('lib/ui/grid')
 
@@ -135,6 +140,7 @@ function init()
   pages_table = {
     DetailsUI:new(),
     PatternAndDensityUI:new(),
+    MoreDensityUI:new()
   }
 
   init_params()
@@ -146,6 +152,8 @@ function init()
   params:read()
   params:set("cyrene_version", current_version)
   params:bang()
+
+  _set_encoder_sensitivities()
 end
 
 function cleanup()
@@ -245,4 +253,9 @@ function _version_gt(a, b)
     if v < b[i] then return false end
   end
   return false
+end
+
+function _set_encoder_sensitivities()
+  -- 1 sensitivity should be a bit slower
+  norns.enc.sens(1, 5)
 end

@@ -281,15 +281,15 @@ function Sequencer:tick()
       -- This seems... wrong to me, so I've made sure that if the trigger map says zero, that means no triggers happen.
       trig_level = trig_level ~= 0 and util.clamp(trig_level + self.part_perturbations[y], 0, 255) or 0
       local threshold
+      local param_id = "track" .. y .. "_density"
       if y == 1 then
-        threshold = 255 - util.round(params:get("kick_density") * 255 / 100)
+        param_id = "kick_density"
       elseif y == 2 then
-        threshold = 255 - util.round(params:get("snare_density") * 255 / 100)
+        param_id = "snare_density"
       elseif y == 3 then
-        threshold = 255 - util.round(params:get("hat_density") * 255 / 100)
-      else
-        threshold = math.random(0, 255)
+        param_id = "hat_density"
       end
+      threshold = 255 - util.round(params:get(param_id) * 255 / 100)
       ts[y] = trig_level > threshold and 1 or 0
     end
     engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], 0)
