@@ -26,24 +26,25 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 * Each column is a beat in the sequence
 * Clicking a key toggles whether or not the sample for that track will play on that beat
 * Click on the last row jumps playback to the beat matching the clicked column
+* Bottom right key is an alt key, hold to enter alt mode
+  * Bottom left now shows page indicators: bright for current page, faded for inactive pages. Click an inactive page to switch to that page of the grid. Only relevant if you have a sequence length longer than your grid is wide
+  * Click any track (rows 1-7) to enter probability editing mode for that track. Y axis now shows probability of a trigger firing on that step. Pagination works as usual, and you can click the key to the left of the alt key to go back to the default multi-track view
+
+### Arc (optional)
+  * Encoder 1 controls tempo
+  * Encoder 2 controls swing
 
 ## Requirements
 * norns
 * the Ack engine
-* grid optional (varibright encouraged, 8 or 16 wide)
+* grid optional but encouraged (varibright especially, 8 or 16 wide)
+* arc optional
 
 ## Roadmap
-* Use the new norns global clock system once it's out
 * Any track can swap from Grids mode to Euclid mode (which is also a mode in the original MI Grids)
 * Hold K2 and tap K3 for tap tempo
-* 32-step patterns instead of 16-step patterns (the MI Grids drum maps are 32 steps long)
-  * This will require some sort of grid pagination
-* Probability editing on the grid
-  * In probability editing mode: whole grid is one track, x axis is beat #, y axis is the probability
-  * In the trigger map our probabilities are 8bit values, so we'll have to show them on grid as rounded to 3bit values. If they are edited by the user, they get written to the trigger map as their 3bit values
-* MI Grids-style "accent" support
+* Velocity / different volumes / MI Grids-style "accent" support
 * Multi-sample mode: use multiple samples on the same track (e.g. two slightly different kick drums) for more realism
-* Velocity / different volumes
 * Non-4/4 meters
 * MIDI out
 * Crow support
