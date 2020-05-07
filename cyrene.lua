@@ -22,6 +22,9 @@
 -- Key toggles trigger
 -- Last row changes
 --  playback position
+-- Bottom right is alt,
+--  hold & click bottom left
+--  to change page
 --
 -- Change samples, fx, etc
 --  via the params menu
@@ -42,18 +45,10 @@ local Sequencer = include('lib/sequencer')
 local DetailsUI = include('lib/ui/details')
 local PatternAndDensityUI = include('lib/ui/pattern_and_density')
 local UIState = include('lib/ui/util/devices')
+local GridUI = include('lib/ui/grid')
 
 local launch_version
 local current_version = "0.9.1"
-
-local TRIG_LEVEL = 15
-local PLAYPOS_LEVEL = 7
-local CLEAR_LEVEL = 0
-
--- TODO: these are duplicated in sequencer.lua
-local MAX_GRID_WIDTH = 16
-local HEIGHT = 8
-local connected_grid
 
 local sequencer
 local pages
@@ -116,65 +111,7 @@ local function init_ui()
     end
   }
 
-  UIState.init_grid {
-    device = grid.connect(),
-    key_callback = function(x, y, state)
-      if state == 1 then
-        if y == 8 then
-          sequencer.queued_playpos = x-1
-          UIState.screen_dirty = true
-        else
-          sequencer:set_trig(
-            params:get("pattern"),
-            x,
-            y,
-            sequencer:trig_level(params:get("pattern"), x, y) == 0 and 255 or 0
-          )
-          UIState.grid_dirty = true
-        end
-      end
-      UIState.flash_event()
-    end,
-    refresh_callback = function(my_grid)
-      connected_grid = my_grid
-      local function refresh_grid_button(x, y)
-        if y == 8 then
-          if x-1 == sequencer.playpos then
-            my_grid:led(x, y, PLAYPOS_LEVEL)
-          else
-            my_grid:led(x, y, CLEAR_LEVEL)
-          end
-        else
-          local trig_level = sequencer:trig_level(params:get("pattern"), x, y)
-          local grid_trig_level = math.ceil((trig_level / 255) * TRIG_LEVEL)
-          if grid_trig_level > 0 then
-            my_grid:led(x, y, grid_trig_level)
-          elseif x-1 == sequencer.playpos then
-            my_grid:led(x, y, PLAYPOS_LEVEL)
-          else
-            my_grid:led(x, y, CLEAR_LEVEL)
-          end
-        end
-      end
-
-      local function refresh_grid_column(x)
-        for y=1,HEIGHT do
-          refresh_grid_button(x, y)
-        end
-      end
-
-      local function refresh_grid()
-        for x=1,MAX_GRID_WIDTH do
-          refresh_grid_column(x)
-        end
-      end
-
-      refresh_grid()
-    end,
-    width_changed_callback = function(new_width)
-      sequencer:set_pattern_length(new_width)
-    end
-  }
+  GridUI.init(sequencer)
 
   UIState.init_screen {
     refresh_callback = function()
@@ -212,10 +149,7 @@ function cleanup()
 
   sequencer:save_patterns()
 
-  if connected_grid and connected_grid.device then
-    connected_grid:all(0)
-    connected_grid:refresh()
-  end
+  GridUI.cleanup()
 
   metro.free(ui_refresh_metro.id)
   ui_refresh_metro = nil

@@ -5,11 +5,10 @@ local tabutil = require 'tabutil'
 
 local PATTERN_FILE = "step.data"
 
-local NUM_PATTERNS = 99
+local NUM_PATTERNS = 50
 local ppqn = 24
 
--- TODO: these are duplicated in cyrene.lua
-local MAX_GRID_WIDTH = 16
+local MAX_PATTERN_LENGTH = 32
 local HEIGHT = 8
 local NUM_TRACKS = HEIGHT - 1
 
@@ -45,7 +44,7 @@ function Sequencer:add_params()
     type="option",
     id="pattern_length",
     name="Pattern Length",
-    options={8, 16},
+    options={8, 16, 32},
     default=2
   }
 
@@ -142,7 +141,7 @@ function Sequencer:_init_trigs()
     self.trigs[patternno] = {}
     for y=1,NUM_TRACKS do
       self.trigs[patternno][y] = {}
-      for x=1,MAX_GRID_WIDTH do
+      for x=1,MAX_PATTERN_LENGTH do
         self.trigs[patternno][y][x] = 0
       end
     end
@@ -150,12 +149,14 @@ function Sequencer:_init_trigs()
 end
 
 function Sequencer:get_pattern_length()
-  if params:get("pattern_length") == 1 then
+  local param_value = params:get("pattern_length")
+  if param_value == 1 then
     return 8
-  else
+  elseif param_value == 2 then
     return 16
+  else
+    return 32
   end
-  -- TODO: Grids uses length-32 patterns
 end
 
 function Sequencer:set_pattern_length(pattern_length)
@@ -173,7 +174,7 @@ function Sequencer:save_patterns()
   io.output(fd)
   for patternno=1,NUM_PATTERNS do
     for y=1,NUM_TRACKS do
-      for x=1,MAX_GRID_WIDTH do
+      for x=1,MAX_PATTERN_LENGTH do
         io.write(self:trig_level(patternno, x, y) .. "\n")
       end
     end
@@ -187,7 +188,7 @@ function Sequencer:load_patterns()
     io.input(fd)
     for patternno=1,NUM_PATTERNS do
       for track=1,NUM_TRACKS do
-        for step=1,MAX_GRID_WIDTH do
+        for step=1,MAX_PATTERN_LENGTH do
           self:set_trig(patternno, step, track, tonumber(io.read()))
         end
       end
@@ -210,6 +211,7 @@ function Sequencer:set_grids_xy(patternno, x, y, force)
   -- so we'll want to set different triggers depending on our desired grid resolution
   local grid_resolution = self:_grid_resolution()
   local step_offset_multiplier = math.floor(32/grid_resolution)
+  local pattern_length = self:get_pattern_length()
   -- Chose four drum map nodes based on the first two bits of x and y
   local i = math.floor(x / 64) + 1 -- (x >> 6) + 1
   local j = math.floor(y / 64) + 1 -- (y >> 6) + 1
@@ -219,7 +221,7 @@ function Sequencer:set_grids_xy(patternno, x, y, force)
   local d_map = DrumMap.map[j + 1][i + 1]
   for track=1,3 do
     local track_offset = ((track - 1) * DrumMap.PATTERN_LENGTH)
-    for step=1,MAX_GRID_WIDTH do
+    for step=1,pattern_length do
       local step_offset = (((step - 1) * step_offset_multiplier) % DrumMap.PATTERN_LENGTH) + 1
       local offset = track_offset + step_offset
       local a = a_map[offset]
