@@ -25,6 +25,16 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 * K2 and K3 cycle through the sections of the page
 * E2 & E3 control selected values (densities for tracks 4 thru 7)
 
+### Euclidean page:
+[Euclidean Rhythms](https://en.wikipedia.org/wiki/Euclidean_rhythm)
+* K2 and K3 cycle through the tracks
+* E2 controls euclidean fill
+* E3 controls euclidean length
+* K2+E2 controls euclidean rotation
+* K2+E3 to enable/disable euclidean mode for the highlighted track
+  * While euclidean mode is disabled, editing the euclidean settings has no effect
+  * When turning euclidean mode from on to off, the kick, snare, and hi-hat tracks go back to their MI Grids patterns based on the current X/Y settings
+
 ### Grid (optional)
 * Each row is a track, with the first 3 being kick, snare, and hi-hat respectively
 * Each column is a beat in the sequence

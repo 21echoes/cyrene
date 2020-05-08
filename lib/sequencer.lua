@@ -1,7 +1,8 @@
 local ControlSpec = require 'controlspec'
 local UI = include('lib/ui/util/devices')
 local DrumMap = include('lib/grids_patterns')
-local tabutil = require 'tabutil'
+local Euclidean = include('lib/euclidean')
+local EuclideanUI = include('lib/ui/euclidean')
 
 local PATTERN_FILE = "step.data"
 
@@ -30,6 +31,9 @@ function Sequencer:new()
   i.queued_playpos = nil
   i.grids_x = nil
   i.grids_y = nil
+  i._euclidean_kick = nil
+  i._euclidean_snare = nil
+  i._euclidean_hat = nil
   i.part_perturbations = {}
   for track=1,NUM_TRACKS do
     i.part_perturbations[track] = 0
@@ -204,7 +208,16 @@ end
 
 function Sequencer:set_grids_xy(patternno, x, y, force)
   -- Short-circuit this expensive operation if there's no change
-  if not force and x == self.grids_x and y == self.grids_y then
+  local euclidean_kick = params:get(EuclideanUI.param_id_prefix_for_track(1).."_euclidean_enabled") == 2
+  local euclidean_snare = params:get(EuclideanUI.param_id_prefix_for_track(2).."_euclidean_enabled") == 2
+  local euclidean_hat = params:get(EuclideanUI.param_id_prefix_for_track(3).."_euclidean_enabled") == 2
+  if (
+    not force
+    and x == self.grids_x and y == self.grids_y
+    and euclidean_kick == self._euclidean_kick
+    and euclidean_snare == self._euclidean_snare
+    and euclidean_hat == self._euclidean_hat
+ ) then
     return
   end
   -- The DrumMap is at 32nd-note resolution,
@@ -220,23 +233,44 @@ function Sequencer:set_grids_xy(patternno, x, y, force)
   local c_map = DrumMap.map[j][i + 1]
   local d_map = DrumMap.map[j + 1][i + 1]
   for track=1,3 do
-    local track_offset = ((track - 1) * DrumMap.PATTERN_LENGTH)
-    for step=1,pattern_length do
-      local step_offset = (((step - 1) * step_offset_multiplier) % DrumMap.PATTERN_LENGTH) + 1
-      local offset = track_offset + step_offset
-      local a = a_map[offset]
-      local b = b_map[offset]
-      local c = c_map[offset]
-      local d = d_map[offset]
-      -- Crossfade between the values at the chosen drum nodes depending on the last 6 bits of x and y
-      local x_xfade = (x * 4) % 256 -- x << 2
-      local y_xfade = (y * 4) % 256 -- y << 2
-      local trig_level = u8mix(u8mix(a, b, y_xfade), u8mix(c, d, y_xfade), x_xfade)
-      self:set_trig(patternno, step, track, trig_level)
+    local euclidean_mode = params:get(EuclideanUI.param_id_prefix_for_track(track).."_euclidean_enabled") == 2
+    if not euclidean_mode then
+      local track_offset = ((track - 1) * DrumMap.PATTERN_LENGTH)
+      for step=1,pattern_length do
+        local step_offset = (((step - 1) * step_offset_multiplier) % DrumMap.PATTERN_LENGTH) + 1
+        local offset = track_offset + step_offset
+        local a = a_map[offset]
+        local b = b_map[offset]
+        local c = c_map[offset]
+        local d = d_map[offset]
+        -- Crossfade between the values at the chosen drum nodes depending on the last 6 bits of x and y
+        local x_xfade = (x * 4) % 256 -- x << 2
+        local y_xfade = (y * 4) % 256 -- y << 2
+        local trig_level = u8mix(u8mix(a, b, y_xfade), u8mix(c, d, y_xfade), x_xfade)
+        self:set_trig(patternno, step, track, trig_level)
+      end
     end
   end
   self.grids_x = x
   self.grids_y = y
+  self._euclidean_kick = euclidean_kick
+  self._euclidean_snare = euclidean_snare
+  self._euclidean_hat = euclidean_hat
+end
+
+function Sequencer:recompute_euclidean_for_track(track)
+  local param_id_prefix = EuclideanUI.param_id_prefix_for_track(track)
+  local trigs = params:get(param_id_prefix.."_euclidean_trigs")
+  local length = params:get(param_id_prefix.."_euclidean_length")
+  local rotation = params:get(param_id_prefix.."_euclidean_rotation")
+  local pattern = Euclidean.get_pattern(trigs, length, rotation)
+  local patternno = params:get("pattern")
+  local master_pattern_length = self:get_pattern_length()
+  for step=1,master_pattern_length do
+    -- Loop the euclidean pattern
+    local pattern_index = (step - 1) % #pattern + 1
+    self:set_trig(patternno, step, track, pattern[pattern_index] and 255 or 0)
+  end
 end
 
 function Sequencer:_clock_tick()

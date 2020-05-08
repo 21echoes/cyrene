@@ -29,7 +29,6 @@ function PatternAndDensityUI:new()
   i.chaos_val_label = Label.new({x=96, y=63, font_size=font_size})
 
   i._section = 0
-  i._alt_key_down_time = nil
   i:_update_active_section()
 
   return i

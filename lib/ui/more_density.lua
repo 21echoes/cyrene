@@ -34,7 +34,6 @@ function MoreDensityUI:new()
   i.track7_val_label = Label.new({x=x2, y=y2+val_title_gap, font_size=font_size})
 
   i._section = 0
-  i._alt_key_down_time = nil
   i:_update_active_section()
 
   return i

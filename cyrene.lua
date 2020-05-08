@@ -19,6 +19,16 @@
 -- K2 & K3 switch sections
 -- E2 & E3 change values
 --
+-- Euclidean page:
+-- K2 & K3 switch track
+-- E2 changes fill
+-- E3 changes length
+-- K2+E2 changes rotation
+-- K2+E3 enables/disables
+--   euclidean mode
+--    (when off, changes
+--     have no effect)
+--
 -- Grid (optional):
 -- Rows are tracks
 -- First 3: kick, snare, hat
@@ -53,6 +63,7 @@ local Sequencer = include('lib/sequencer')
 local DetailsUI = include('lib/ui/details')
 local PatternAndDensityUI = include('lib/ui/pattern_and_density')
 local MoreDensityUI = include('lib/ui/more_density')
+local EuclideanUI = include('lib/ui/euclidean')
 local UIState = include('lib/ui/util/devices')
 local GridUI = include('lib/ui/grid')
 
@@ -140,7 +151,8 @@ function init()
   pages_table = {
     DetailsUI:new(),
     PatternAndDensityUI:new(),
-    MoreDensityUI:new()
+    MoreDensityUI:new(),
+    EuclideanUI:new(sequencer),
   }
 
   init_params()
