@@ -50,6 +50,9 @@ function DetailsUI:add_params()
   -- TODO: move tempo and swing in here
 end
 
+function DetailsUI:add_params_for_track(track)
+end
+
 function DetailsUI:enc(n, delta, sequencer)
   if self._alt_key_down_time then
     self._alt_action_taken = true

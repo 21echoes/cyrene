@@ -45,14 +45,6 @@ end
 
 function Sequencer:add_params()
   params:add {
-    type="option",
-    id="pattern_length",
-    name="Pattern Length",
-    options={8, 16, 32},
-    default=2
-  }
-
-  params:add {
     type="number",
     id="pattern",
     name="Pattern",
@@ -63,15 +55,13 @@ function Sequencer:add_params()
       UI.grid_dirty = true
     end
   }
-
   params:add {
     type="option",
-    id="cut_quant",
-    name="Quantize Cutting",
-    options={"No", "Yes"},
-    default=1
+    id="pattern_length",
+    name="Pattern Length",
+    options={8, 16, 32},
+    default=2
   }
-
   params:add {
     type="option",
     id="grid_resolution",
@@ -85,14 +75,6 @@ function Sequencer:add_params()
       self:_update_clock_sync_resolution()
     end
   }
-
-  local default_tempo_action = params:lookup_param("clock_tempo").action
-  params:set_action("clock_tempo", function(val)
-    default_tempo_action(val)
-    UI.arc_dirty = true
-    UI.screen_dirty = true
-  end)
-
   params:add {
     type="control",
     id="swing_amount",
@@ -104,6 +86,19 @@ function Sequencer:add_params()
       UI.arc_dirty = true
     end
   }
+  params:add {
+    type="option",
+    id="cut_quant",
+    name="Quantize Cutting",
+    options={"No", "Yes"},
+    default=1
+  }
+  local default_tempo_action = params:lookup_param("clock_tempo").action
+  params:set_action("clock_tempo", function(val)
+    default_tempo_action(val)
+    UI.arc_dirty = true
+    UI.screen_dirty = true
+  end)
 end
 
 function Sequencer:initialize()

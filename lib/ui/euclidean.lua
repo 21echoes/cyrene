@@ -42,84 +42,78 @@ function EuclideanUI:new(sequencer)
   return i
 end
 
-function EuclideanUI:add_params()
-  for track=1,NUM_TRACKS do
-    local track_id_prefix = self.param_id_prefix_for_track(track)
-    local track_name_prefix = "Trk "..track
-    if track == 1 then track_name_prefix = "Kick"
-    elseif track == 2 then track_name_prefix = "Snare"
-    elseif track == 3 then track_name_prefix = "Hi-Hat"
+function EuclideanUI:add_params_for_track(track)
+  local track_id_prefix = self.param_id_prefix_for_track(track)
+  local track_name_prefix = track..":"
+  params:add {
+    type="option",
+    id=track_id_prefix.."_euclidean_enabled",
+    name=track_name_prefix.." Euclidean Mode",
+    options={"Off", "On"},
+    default=1,
+    action=function(value)
+      self:_update_sequencer(track)
+      self:_update_label_levels()
+      UIState.screen_dirty = true
     end
-    params:add {
-      type="option",
-      id=track_id_prefix.."_euclidean_enabled",
-      name=track_name_prefix.." Eucl Mode",
-      options={"Off", "On"},
-      default=1,
-      action=function(value)
-        self:_update_sequencer(track)
-        self:_update_label_levels()
-        UIState.screen_dirty = true
+  }
+  local eucl_length_param_id = track_id_prefix.."_euclidean_length"
+  local eucl_trigs_param_id = track_id_prefix.."_euclidean_trigs"
+  local eucl_rotation_param_id = track_id_prefix.."_euclidean_rotation"
+  params:add {
+    type="number",
+    id=eucl_length_param_id,
+    name=track_name_prefix.." Euclidean Length",
+    min=1,
+    max=MAX_PATTERN_LENGTH,
+    default=8,
+    action=function(value)
+      if value < params:get(eucl_trigs_param_id) then
+        params:set(eucl_trigs_param_id, value)
       end
-    }
-    local eucl_length_param_id = track_id_prefix.."_euclidean_length"
-    local eucl_trigs_param_id = track_id_prefix.."_euclidean_trigs"
-    local eucl_rotation_param_id = track_id_prefix.."_euclidean_rotation"
-    params:add {
-      type="number",
-      id=eucl_length_param_id,
-      name=track_name_prefix.." Eucl Length",
-      min=1,
-      max=MAX_PATTERN_LENGTH,
-      default=8,
-      action=function(value)
-        if value < params:get(eucl_trigs_param_id) then
-          params:set(eucl_trigs_param_id, value)
-        end
-        self:_update_sequencer(track)
-        self._cached_euclideans = nil
-        self.length_labels[track].text = value
-        UIState.screen_dirty = true
+      self:_update_sequencer(track)
+      self._cached_euclideans = nil
+      self.length_labels[track].text = value
+      UIState.screen_dirty = true
+    end
+  }
+  params:add {
+    type="number",
+    id=eucl_trigs_param_id,
+    name=track_name_prefix.." Euclidean Count",
+    min=0,
+    max=MAX_PATTERN_LENGTH,
+    default=0,
+    action=function(value)
+      local eucl_length = params:get(eucl_length_param_id)
+      if value > eucl_length then
+        params:set(eucl_trigs_param_id, eucl_length)
+        value = eucl_length
       end
-    }
-    params:add {
-      type="number",
-      id=eucl_trigs_param_id,
-      name=track_name_prefix.." Eucl Count",
-      min=0,
-      max=MAX_PATTERN_LENGTH,
-      default=0,
-      action=function(value)
-        local eucl_length = params:get(eucl_length_param_id)
-        if value > eucl_length then
-          params:set(eucl_trigs_param_id, eucl_length)
-          value = eucl_length
-        end
-        self:_update_sequencer(track)
-        self._cached_euclideans = nil
-        self.trigs_labels[track].text = value
-        UIState.screen_dirty = true
+      self:_update_sequencer(track)
+      self._cached_euclideans = nil
+      self.trigs_labels[track].text = value
+      UIState.screen_dirty = true
+    end
+  }
+  params:add {
+    type="number",
+    id=eucl_rotation_param_id,
+    name=track_name_prefix.." Euclidean Rotate",
+    min=0,
+    max=MAX_PATTERN_LENGTH - 1,
+    default=0,
+    action=function(value)
+      local eucl_length = params:get(eucl_length_param_id)
+      if value > eucl_length - 1 then
+        params:set(eucl_rotation_param_id, eucl_length - 1)
+        value = eucl_length - 1
       end
-    }
-    params:add {
-      type="number",
-      id=eucl_rotation_param_id,
-      name=track_name_prefix.." Eucl Rotate",
-      min=0,
-      max=MAX_PATTERN_LENGTH - 1,
-      default=0,
-      action=function(value)
-        local eucl_length = params:get(eucl_length_param_id)
-        if value > eucl_length - 1 then
-          params:set(eucl_rotation_param_id, eucl_length - 1)
-          value = eucl_length - 1
-        end
-        self:_update_sequencer(track)
-        self._cached_euclideans = nil
-        UIState.screen_dirty = true
-      end
-    }
-  end
+      self:_update_sequencer(track)
+      self._cached_euclideans = nil
+      UIState.screen_dirty = true
+    end
+  }
 end
 
 function EuclideanUI:enc(n, delta, sequencer)

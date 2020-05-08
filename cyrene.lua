@@ -74,8 +74,10 @@ local sequencer
 local pages
 local pages_table
 local ui_refresh_metro
+local NUM_TRACKS = 7
 
 local function init_params()
+  params:add_separator()
   params:add {
     id="cyrene_version",
     name="Cyrene Version",
@@ -83,11 +85,24 @@ local function init_params()
   }
   params:hide(params.lookup["cyrene_version"])
   sequencer:add_params()
-  for i, page in ipairs(pages_table) do
-    pages_table[i]:add_params()
+  -- Only the first 2 pages have any generic params
+  pages_table[1]:add_params()
+  pages_table[2]:add_params()
+  for track=1,NUM_TRACKS do
+    local group_name = "Track "..track
+    if track == 1 then group_name = "Kick"
+    elseif track == 2 then group_name = "Snare"
+    elseif track == 3 then group_name = "Hi-Hat"
+    end
+    params:add_group(group_name, 27)
+    -- All the pages together add 5 params per track
+    for i, page in ipairs(pages_table) do
+      pages_table[i]:add_params_for_track(track)
+    end
+    Ack.add_channel_params(track) -- 22 params
   end
-  params:add_separator()
-  Ack.add_params()
+  params:add_group("Effects", 6)
+  Ack.add_effects_params() -- 6 params
 
   local is_first_launch = not sequencer:has_pattern_file()
   if is_first_launch then

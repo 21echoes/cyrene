@@ -39,56 +39,22 @@ function MoreDensityUI:new()
   return i
 end
 
-function MoreDensityUI:add_params()
+function MoreDensityUI:add_params_for_track(track)
+  -- PatternAndDensityUI handles tracks 1-3
+  if track < 4 then return end
+  local param_id = "track"..track.."_density"
+  local param_name = track..": Density"
+  local val_label = self["track"..track.."_val_label"]
   params:add {
     type="number",
-    id="track4_density",
-    name="Track 4 Density",
+    id=param_id,
+    name=param_name,
     min=0,
     max=100,
     default=50,
     formatter=function(param) return param.value .. "%" end,
     action=function(value)
-      self.track4_val_label.text = value
-      UIState.screen_dirty = true
-    end
-  }
-  params:add {
-    type="number",
-    id="track5_density",
-    name="Track 5 Density",
-    min=0,
-    max=100,
-    default=50,
-    formatter=function(param) return param.value .. "%" end,
-    action=function(value)
-      self.track5_val_label.text = value
-      UIState.screen_dirty = true
-    end
-  }
-  params:add {
-    type="number",
-    id="track6_density",
-    name="Track 6 Density",
-    min=0,
-    max=100,
-    default=50,
-    formatter=function(param) return param.value .. "%" end,
-    action=function(value)
-      self.track6_val_label.text = value
-      UIState.screen_dirty = true
-    end
-  }
-  params:add {
-    type="number",
-    id="track7_density",
-    name="Track 7 Density",
-    min=0,
-    max=100,
-    default=50,
-    formatter=function(param) return param.value .. "%" end,
-    action=function(value)
-      self.track7_val_label.text = value
+      val_label.text = value
       UIState.screen_dirty = true
     end
   }

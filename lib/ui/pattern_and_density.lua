@@ -66,42 +66,32 @@ function PatternAndDensityUI:add_params()
       UIState.screen_dirty = true
     end
   }
+end
+
+function PatternAndDensityUI:add_params_for_track(track)
+  -- MoreDensityUI handles tracks 4 and beyond
+  if track > 3 then return end
+  local param_id
+  if track == 1 then param_id = "kick_density"
+  elseif track == 2 then param_id = "snare_density"
+  elseif track == 3 then param_id = "hat_density"
+  end
+  local param_name = track..": Density"
+  local val_label
+  if track == 1 then val_label = self.kick_val_label
+  elseif track == 2 then val_label = self.snare_val_label
+  elseif track == 3 then val_label = self.hat_val_label
+  end
   params:add {
     type="number",
-    id="kick_density",
-    name="Kick Density",
+    id=param_id,
+    name=param_name,
     min=0,
     max=100,
     default=50,
     formatter=function(param) return param.value .. "%" end,
     action=function(value)
-      self.kick_val_label.text = value
-      UIState.screen_dirty = true
-    end
-  }
-  params:add {
-    type="number",
-    id="snare_density",
-    name="Snare Density",
-    min=0,
-    max=100,
-    default=50,
-    formatter=function(param) return param.value .. "%" end,
-    action=function(value)
-      self.snare_val_label.text = value
-      UIState.screen_dirty = true
-    end
-  }
-  params:add {
-    type="number",
-    id="hat_density",
-    name="Hi-Hat Density",
-    min=0,
-    max=100,
-    default=50,
-    formatter=function(param) return param.value .. "%" end,
-    action=function(value)
-      self.hat_val_label.text = value
+      val_label.text = value
       UIState.screen_dirty = true
     end
   }
