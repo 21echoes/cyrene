@@ -53,7 +53,7 @@
 -- and Step, by @jah
 --
 --
--- v1.0.1 @21echoes
+-- v1.1.0 @21echoes
 
 engine.name = 'Ack'
 
@@ -68,7 +68,7 @@ local UIState = include('lib/ui/util/devices')
 local GridUI = include('lib/ui/grid')
 
 local launch_version
-local current_version = "0.9.1"
+local current_version = "1.1.0"
 
 local sequencer
 local pages
@@ -160,7 +160,8 @@ end
 function init()
   math.randomseed(os.time())
   -- Once we care about comparing launch and current versions, use this:
-  -- _check_launch_version()
+  _check_launch_version()
+  _run_migrations()
 
   sequencer = Sequencer:new()
   pages_table = {
@@ -248,6 +249,11 @@ function _set_sample(track, path, volume)
   end
 end
 
+function _set_encoder_sensitivities()
+  -- 1 sensitivity should be a bit slower
+  norns.enc.sens(1, 5)
+end
+
 -- Version management
 
 function _check_launch_version()
@@ -282,7 +288,25 @@ function _version_gt(a, b)
   return false
 end
 
-function _set_encoder_sensitivities()
-  -- 1 sensitivity should be a bit slower
-  norns.enc.sens(1, 5)
+function _run_migrations()
+  if _version_gt("1.1.-1", launch_version) then
+    _upgrade_to_1_1_0()
+  end
+end
+
+function _upgrade_to_1_1_0()
+  -- Remove all params for the 8th track. For some reason, they cause a crash on boot
+  local filename = norns.state.data .. norns.state.shortname
+  filename = filename .. "-" .. string.format("%02d",1) .. ".pset"
+  local fd = io.open(filename, "r")
+  if not fd then
+    return
+  end
+  local contents = fd:read("*all")
+  local new_contents = contents:gsub("\"8_(%S*):%s(%S*)", "")
+  io.close(fd)
+  local fd=io.open(filename,"w+")
+  io.output(fd)
+  io.write(new_contents)
+  io.close(fd)
 end
