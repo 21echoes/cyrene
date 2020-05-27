@@ -55,7 +55,6 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 * arc optional
 
 ## Roadmap
-* Any track can swap from Grids mode to Euclid mode (which is also a mode in the original MI Grids)
 * Hold K2 and tap K3 for tap tempo
 * Velocity / different volumes / MI Grids-style "accent" support
 * Multi-sample mode: use multiple samples on the same track (e.g. two slightly different kick drums) for more realism
