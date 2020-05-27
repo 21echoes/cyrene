@@ -54,6 +54,30 @@ function MidiOut:turn_off_active_notes()
   end
 end
 
+function MidiOut:start_at_beginning(track, velocity)
+  if self:is_midi_out_enabled() then
+    m:start()
+  end
+end
+
+function MidiOut:stop(track, velocity)
+  if self:is_midi_out_enabled() then
+    m:stop()
+  end
+end
+
+function MidiOut:continue(track, velocity)
+  if self:is_midi_out_enabled() then
+    m:continue()
+  end
+end
+
+function MidiOut:send_ppqn_pulse()
+  if self:is_midi_out_enabled() then
+    m:clock()
+  end
+end
+
 -- Make sure there's only one copy
 if _MidiOut == nil then
   _MidiOut = MidiOut

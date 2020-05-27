@@ -29,6 +29,7 @@ function Sequencer:new()
   i.playing = false
   i.playpos = -1
   i.ticks_to_next = nil
+  i._raw_ticks = nil
   i.queued_playpos = nil
   i.grids_x = nil
   i.grids_y = nil
@@ -280,7 +281,19 @@ end
 function Sequencer:tick()
   if queued_playpos and params:get("cut_quant") == 1 then
     self.ticks_to_next = 0
+    self._raw_ticks = 0
   end
+
+  -- Also track the swing-independent number of ticks for midi clock out messages
+  local grid_resolution = self:_grid_resolution()
+  local midi_ppqn_divisor = grid_resolution/4
+  if (not self._raw_ticks) or (self._raw_ticks % midi_ppqn_divisor) == 0 then
+    MidiOut:send_ppqn_pulse()
+  end
+  if (not self._raw_ticks) or (self._raw_ticks == 0) then
+    self._raw_ticks = ppqn
+  end
+  self._raw_ticks = self._raw_ticks - 1
 
   if (not self.ticks_to_next) or self.ticks_to_next == 0 then
     local patternno = params:get("pattern")

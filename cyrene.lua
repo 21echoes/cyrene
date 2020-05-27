@@ -178,6 +178,7 @@ function init()
 
   sequencer:initialize()
   sequencer:start()
+  MidiOut:start_at_beginning()
 
   params:read()
   params:set("cyrene_version", current_version)

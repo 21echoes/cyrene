@@ -4,6 +4,7 @@
 local UI = require "ui"
 local Label = include("lib/ui/util/label")
 local UIState = include('lib/ui/util/devices')
+local MidiOut = include('lib/midi_out')
 
 local hi_level = 15
 local mid_level = 6
@@ -91,9 +92,17 @@ function DetailsUI:key(n, z, sequencer)
       UIState.grid_dirty = true
     else
       sequencer:stop()
+      MidiOut:stop()
     end
   elseif n == 3 and z == 1 then
-    sequencer:start()
+    if sequencer.playing == false then
+      if sequencer.playpos == -1 and sequencer.queued_playpos == 0 then
+        MidiOut:start_at_beginning()
+      else
+        MidiOut:continue()
+      end
+      sequencer:start()
+    end
   end
   UIState.screen_dirty = true
 end
