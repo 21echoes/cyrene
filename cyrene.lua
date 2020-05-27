@@ -60,6 +60,7 @@ engine.name = 'Ack'
 local Ack = require 'ack/lib/ack'
 local UI = require 'ui'
 local Sequencer = include('lib/sequencer')
+local MidiOut = include('lib/midi_out')
 local DetailsUI = include('lib/ui/details')
 local PatternAndDensityUI = include('lib/ui/pattern_and_density')
 local MoreDensityUI = include('lib/ui/more_density')
@@ -103,6 +104,7 @@ local function init_params()
   end
   params:add_group("Effects", 6)
   Ack.add_effects_params() -- 6 params
+  MidiOut:add_params()
 
   local is_first_launch = not sequencer:has_pattern_file()
   if is_first_launch then

@@ -2,6 +2,7 @@ local ControlSpec = require 'controlspec'
 local UI = include('lib/ui/util/devices')
 local DrumMap = include('lib/grids_patterns')
 local Euclidean = include('lib/euclidean')
+local MidiOut = include('lib/midi_out')
 local EuclideanUI = include('lib/ui/euclidean')
 
 local PATTERN_FILE = "step.data"
@@ -121,6 +122,7 @@ end
 
 function Sequencer:stop()
   self.playing = false
+  MidiOut:turn_off_active_notes()
   if self._clock_id ~= nil then
     clock.cancel(self._clock_id)
     self._clock_id = nil
@@ -302,7 +304,9 @@ function Sequencer:tick()
       end
     end
 
+    MidiOut:turn_off_active_notes()
     local ts = {}
+    local velocities = {}
     for y=1,7 do
       local trig_level = self:trig_level(patternno, self.playpos+1, y)
       -- The original MI Grids algorithm makes it possible that a track would trigger on every beat
@@ -320,8 +324,14 @@ function Sequencer:tick()
       end
       threshold = 255 - util.round(params:get(param_id) * 255 / 100)
       ts[y] = trig_level > threshold and 1 or 0
+      velocities[y] = ts[y] and trig_level or 0
     end
     engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], 0)
+    if MidiOut:is_midi_out_enabled() then
+      for y=1,7 do
+        MidiOut:note_on(y, ts[y] * math.floor(velocities[y] / 2))
+      end
+    end
 
     if previous_playpos ~= -1 or self.playpos ~= -1 then
       UI.grid_dirty = true
