@@ -172,6 +172,9 @@ function Trigs.refresh_grid_button(x, y, sequencer)
   else
     -- Show the likelihood of a trigger firing via its brightness (down to some minimum brightness)
     local grid_trig_level = math.ceil((trig_level / 255) * (TRIG_LEVEL - MIN_TRIG_LEVEL)) + MIN_TRIG_LEVEL
+    -- Fade out the columns beyond the end of the pattern
+    local is_beyond_pattern_end = trig_x > sequencer:get_pattern_length()
+    grid_trig_level = is_beyond_pattern_end and math.ceil(grid_trig_level * 0.33) or grid_trig_level
     Grid.connected_grid:led(x, y, grid_trig_level)
   end
 end
@@ -218,7 +221,9 @@ function Probabilities.refresh_grid_button(x, y, sequencer)
       Grid.connected_grid:led(x, y, CLEAR_LEVEL)
     end
   else
-    Grid.connected_grid:led(x, y, TRIG_LEVEL)
+    local is_beyond_pattern_end = trig_x > sequencer:get_pattern_length()
+    grid_trig_level = is_beyond_pattern_end and math.ceil(TRIG_LEVEL * 0.33) or TRIG_LEVEL
+    Grid.connected_grid:led(x, y, grid_trig_level)
   end
 end
 
