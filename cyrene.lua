@@ -53,8 +53,8 @@
 -- and Step, by @jah
 --
 --
--- v1.3.0 @21echoes
-local current_version = "1.3.0"
+-- v1.2.0 @21echoes
+local current_version = "1.2.0"
 
 engine.name = 'Ack'
 
@@ -295,8 +295,8 @@ function _run_migrations()
   if _version_gt("1.1.-1", launch_version) then
     _upgrade_to_1_1_0()
   end
-  if _version_gt("1.3.-1", launch_version) then
-    _upgrade_to_1_3_0()
+  if _version_gt("1.2.-1", launch_version) then
+    _upgrade_to_1_2_0()
   end
 end
 
@@ -317,7 +317,7 @@ function _upgrade_to_1_1_0()
   io.close(fd)
 end
 
-function _upgrade_to_1_3_0()
+function _upgrade_to_1_2_0()
   -- Change the old options-based pattern_length to a real number of beats
   local filename = norns.state.data .. norns.state.shortname
   filename = filename .. "-" .. string.format("%02d",1) .. ".pset"
