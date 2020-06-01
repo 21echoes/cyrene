@@ -15,7 +15,7 @@ local DEFAULT_NOTES = {
   46, -- Open hi-hat
   70, -- Maraca
   37, -- Rimshot
-  39, -- Hand clap
+  63, -- High Conga
 }
 
 function MidiOut:add_params()
