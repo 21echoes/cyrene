@@ -53,7 +53,8 @@
 -- and Step, by @jah
 --
 --
--- v1.1.0 @21echoes
+-- v1.3.0 @21echoes
+local current_version = "1.3.0"
 
 engine.name = 'Ack'
 
@@ -69,7 +70,6 @@ local UIState = include('lib/ui/util/devices')
 local GridUI = include('lib/ui/grid')
 
 local launch_version
-local current_version = "1.1.0"
 
 local sequencer
 local pages
@@ -295,6 +295,9 @@ function _run_migrations()
   if _version_gt("1.1.-1", launch_version) then
     _upgrade_to_1_1_0()
   end
+  if _version_gt("1.3.-1", launch_version) then
+    _upgrade_to_1_3_0()
+  end
 end
 
 function _upgrade_to_1_1_0()
@@ -308,6 +311,34 @@ function _upgrade_to_1_1_0()
   local contents = fd:read("*all")
   local new_contents = contents:gsub("\"8_(%S*):%s(%S*)", "")
   io.close(fd)
+  local fd=io.open(filename,"w+")
+  io.output(fd)
+  io.write(new_contents)
+  io.close(fd)
+end
+
+function _upgrade_to_1_3_0()
+  -- Change the old options-based pattern_length to a real number of beats
+  local filename = norns.state.data .. norns.state.shortname
+  filename = filename .. "-" .. string.format("%02d",1) .. ".pset"
+  local fd = io.open(filename, "r")
+  if not fd then
+    return
+  end
+  local contents = fd:read("*all")
+  local old_pattern_length = contents:match("\"pattern_length\": (%d+)")
+  io.close(fd)
+  if not old_pattern_length then
+    return
+  end
+  local new_pattern_length = 16
+  if old_pattern_length == "1" then new_pattern_length = 8
+  elseif old_pattern_length == "2" then new_pattern_length = 16
+  elseif old_pattern_length == "3" then new_pattern_length = 32 end
+  local new_contents = contents:gsub(
+    "\"pattern_length\": "..old_pattern_length,
+    "\"pattern_length\": "..new_pattern_length
+  )
   local fd=io.open(filename,"w+")
   io.output(fd)
   io.write(new_contents)

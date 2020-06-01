@@ -58,11 +58,12 @@ function Sequencer:add_params()
     end
   }
   params:add {
-    type="option",
+    type="number",
     id="pattern_length",
     name="Pattern Length",
-    options={8, 16, 32},
-    default=2
+    min=1,
+    max=MAX_PATTERN_LENGTH,
+    default=16
   }
   params:add {
     type="option",
@@ -151,24 +152,11 @@ function Sequencer:_init_trigs()
 end
 
 function Sequencer:get_pattern_length()
-  local param_value = params:get("pattern_length")
-  if param_value == 1 then
-    return 8
-  elseif param_value == 2 then
-    return 16
-  else
-    return 32
-  end
+  return params:get("pattern_length")
 end
 
 function Sequencer:set_pattern_length(pattern_length)
-  local opt
-  if pattern_length == 8 then
-    opt = 1
-  else
-    opt = 2
-  end
-  params:set("pattern_length", opt)
+  params:set("pattern_length", pattern_length)
 end
 
 function Sequencer:save_patterns()
@@ -376,12 +364,19 @@ function Sequencer:_update_clock_sync_resolution()
 end
 
 function Sequencer:_is_even_side_swing()
-  -- If resolution is 16th or higher, we do 16th note swing. At 8th notes, we do 8th note swing
   local grid_resolution = self:_grid_resolution()
+  -- If resolution is quarters, we don't swing
   if grid_resolution == 4 then return nil end
-  if grid_resolution == 8 then return self.playpos % 2 == 0 end
-  if grid_resolution == 16 then return self.playpos % 2 == 0 end
-  return math.floor(self.playpos/2) % 2 == 0
+  -- If resolution is 16th or higher, we do 16th note swing. At 8th notes, we do 8th note swing
+  local playpos = self.playpos
+  local divisor = math.ceil(grid_resolution/16)
+  playpos = math.floor(playpos/divisor)
+  -- If we're in an odd meter, we don't swing the last beat
+  local pattern_length = math.floor(self:get_pattern_length()/divisor)
+  if pattern_length % 2 == 1 and playpos == pattern_length - 1 then
+    return nil
+  end
+  return playpos % 2 == 0
 end
 
 function Sequencer:update_swing(swing_amount)
