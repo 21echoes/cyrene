@@ -58,8 +58,6 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 * Hold K2 and tap K3 for tap tempo
 * Velocity / different volumes / MI Grids-style "accent" support
 * Multi-sample mode: use multiple samples on the same track (e.g. two slightly different kick drums) for more realism
-* Non-4/4 meters
-* MIDI out
 * Crow support
   * Map crow inputs to control a parameter (tempo, x, kick density, etc.)
   * Crow outputs are triggers for tracks 1 thru 4
