@@ -337,7 +337,7 @@ function Sequencer:tick()
 
     for y=1,CrowIO:num_outs() do
       if ts[y] == 1 then
-        CrowIO:note_on(y)
+        CrowIO:gate_on(y)
       end
     end
 
