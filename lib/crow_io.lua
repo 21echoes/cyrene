@@ -12,7 +12,7 @@ function CrowIO:init()
   end
 end
 
-function CrowIO:note_on(track)
+function CrowIO:gate_on(track)
   c.output[track].execute()
 end
 
