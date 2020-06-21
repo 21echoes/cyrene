@@ -14,7 +14,7 @@ function CrowIO:initialize()
 end
 
 function CrowIO:add_params()
-  params:add_group("Crow", 2)
+  params:add_group("Crow", 8)
   params:add_option("crow_out", "Enable Crow Out?", {"Off", "On"}, 2)
   params:add_option("crow_in", "Enable Crow In?", {"Off", "On"}, 2)
   for track=1, NUM_OUTS do
