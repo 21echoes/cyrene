@@ -106,7 +106,7 @@ local function init_params()
   params:add_group("Effects", 6)
   Ack.add_effects_params() -- 6 params
   MidiOut:add_params()
-  CrowIO:init()
+  CrowIO:add_params()
 
   local is_first_launch = not sequencer:has_pattern_file()
   if is_first_launch then
@@ -181,6 +181,7 @@ function init()
   sequencer:initialize()
   sequencer:start()
   MidiOut:start_at_beginning()
+  CrowIO:initialize()
 
   params:read()
   params:set("cyrene_version", current_version)

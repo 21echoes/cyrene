@@ -335,9 +335,12 @@ function Sequencer:tick()
       end
     end
 
-    for y=1,CrowIO:num_outs() do
-      if ts[y] == 1 then
-        CrowIO:gate_on(y)
+    if CrowIO:is_crow_out_enabled() then
+      for y=1,CrowIO:num_outs() do
+        local sel_track = params:get("crow_out_"..y.."_track")
+        if ts[sel_track] == 1 then
+          CrowIO:gate_on(y)
+        end
       end
     end
 
