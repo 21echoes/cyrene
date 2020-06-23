@@ -21,7 +21,12 @@ function CrowIO:add_params()
     params:add_number("crow_out_"..track.."_track", "out "..track..": track", 1, NUM_TRACKS, track)
   end
   for track=1, NUM_INS do
-    params:add_option("crow_in_"..track.."_param", "in "..track..": param", {"Off", "Tempo", "Swing", "Pattern", "Chaos"}, 1)
+    params:add_option(
+      "crow_in_"..track.."_param",
+      "in "..track..": param",
+      {"Off", "Tempo", "Swing", "Pattern X", "Pattern Y", "Pattern X + Y", "Chaos"},
+      1
+    )
   end
 end
 
@@ -36,8 +41,10 @@ function _get_input_param(v)
     [1] = {},
     [2] = {"clock_tempo"},
     [3] = {"swing_amount"},
-    [4] = {"grids_pattern_x", "grids_pattern_y"},
-    [5] = {"pattern_chaos"},
+    [4] = {"grids_pattern_x"},
+    [5] = {"grids_pattern_y"},
+    [6] = {"grids_pattern_x", "grids_pattern_y"},
+    [7] = {"pattern_chaos"},
   }
   return input_params[v]
 end
