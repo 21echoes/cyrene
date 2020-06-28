@@ -8,36 +8,44 @@ local NUM_INS = 2
 local NUM_OUTS = 4
 local NUM_TRACKS = 7
 
+local INPUT_PARAMS = {
+  [1]={
+    id="grids_pattern_x",
+    name="Pattern X",
+    range=256
+  },
+  [2]={
+    id="grids_pattern_y",
+    name="Pattern Y",
+    range=256
+  },
+  [3]={
+    id="swing_amount",
+    name="Swing",
+    range=100
+  },
+  [4]={
+    id="pattern_chaos",
+    name="Chaos",
+    range=100
+  }
+}
+
 local function init_outputs()
   for track=1,NUM_OUTS do
     c.output[track].action = "pulse("..GATE_TIME..","..GATE_LEVEL..")"
   end
 end
 
-local function get_input_param(v)
-  local input_params = {
-    [1] = {},
-    [2] = {"clock_tempo"},
-    [3] = {"swing_amount"},
-    [4] = {"grids_pattern_x"},
-    [5] = {"grids_pattern_y"},
-    [6] = {"grids_pattern_x", "grids_pattern_y"},
-    [7] = {"pattern_chaos"},
-  }
-  return input_params[v]
-end
-
 local function query_input(track)
-  local prev_val = 0
-
   c.input[track].stream = function(v)
     if CrowIO:is_crow_in_enabled() then
-      local input_params = get_input_param(params:get("crow_in_"..track.."_param"))
-      local delta = v > prev_val and 2 or -2
-      for param=1, #input_params do
-        params:delta(input_params[param], delta)
+      local input_param = INPUT_PARAMS[params:get("crow_in_"..track.."_param")]
+
+      if input_param then
+        local next_val = math.ceil(input_param["range"] * ((v + 5) / 10))
+        params:set(input_param["id"], next_val)
       end
-      prev_val = v
     end
   end
 end
@@ -65,7 +73,7 @@ function CrowIO:add_params()
     params:add_option(
       "crow_in_"..track.."_param",
       "in "..track..": param",
-      {"Off", "Tempo", "Swing", "Pattern X", "Pattern Y", "Pattern X + Y", "Chaos"},
+      {"Pattern X", "Pattern Y", "Swing", "Chaos", "Off"},
       1
     )
   end
