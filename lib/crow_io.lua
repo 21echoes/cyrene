@@ -1,8 +1,9 @@
 local CrowIO = {}
 local c = crow
 
-local GATE_TIME = 0.1;
-local GATE_LEVEL = 5.0;
+local ENV_ATTACK = 0.03;
+local ENV_RELEASE = 0.3;
+local ENV_LEVEL = 5.0;
 
 local NUM_INS = 2
 local NUM_OUTS = 4
@@ -33,7 +34,9 @@ local INPUT_PARAMS = {
 
 local function init_outputs()
   for track=1,NUM_OUTS do
-    c.output[track].action = "pulse("..GATE_TIME..","..GATE_LEVEL..")"
+    local attack = params:get("crow_out_"..track.."_attack")
+    local release = params:get("crow_out_"..track.."_release")
+    c.output[track].action = "ar("..attack..", "..release..", "..ENV_LEVEL..")"
   end
 end
 
@@ -63,11 +66,13 @@ function CrowIO:initialize()
 end
 
 function CrowIO:add_params()
-  params:add_group("Crow", 8)
+  params:add_group("Crow", 16)
   params:add_option("crow_out", "Enable Crow Out?", {"Off", "On"}, 2)
   params:add_option("crow_in", "Enable Crow In?", {"Off", "On"}, 2)
   for track=1, NUM_OUTS do
     params:add_number("crow_out_"..track.."_track", "out "..track..": track", 1, NUM_TRACKS, track)
+    params:add_control("crow_out_"..track.."_attack", "out "..track..": attack", controlspec.new(0.03, 10, 'lin', 0, ENV_ATTACK))
+    params:add_control("crow_out_"..track.."_release", "out "..track..": release", controlspec.new(0.03, 10, 'lin', 0, ENV_RELEASE))
   end
   for track=1, NUM_INS do
     params:add_option(
