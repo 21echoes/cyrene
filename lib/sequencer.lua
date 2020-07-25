@@ -17,6 +17,8 @@ local NUM_TRACKS = HEIGHT - 1
 local tempo_spec = ControlSpec.new(20, 300, ControlSpec.WARP_LIN, 0, 120, "BPM")
 local swing_amount_spec = ControlSpec.new(0, 100, ControlSpec.WARP_LIN, 0, 0, "%")
 
+local MIN_ENGINE_VOL = -40
+
 local Sequencer = {}
 
 function Sequencer:new()
@@ -324,8 +326,18 @@ function Sequencer:tick()
         param_id = "hat_density"
       end
       threshold = 255 - util.round(params:get(param_id) * 255 / 100)
-      ts[y] = trig_level > threshold and 1 or 0
-      velocities[y] = ts[y] and trig_level or 0
+      if trig_level > threshold then
+        ts[y] = 1
+        velocities[y] = trig_level
+        -- Compute the sample volume. Max out at 192
+        local max_vol = params:get(y.."_vol")
+        local sample_velocity = velocities[y] > 192 and 192 or velocities[y]
+        local engine_vol = MIN_ENGINE_VOL + ((max_vol - MIN_ENGINE_VOL) * (sample_velocity/192))
+        engine.volume(y-1, engine_vol)
+      else
+        ts[y] = 0
+        velocities[y] = 0
+      end
     end
     engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], 0)
     if MidiOut:is_midi_out_enabled() then
