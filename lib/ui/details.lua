@@ -4,6 +4,7 @@
 local UI = require "ui"
 local Label = include("lib/ui/util/label")
 local UIState = include('lib/ui/util/devices')
+local TapTempo = include("lib/ui/util/tap_tempo")
 local MidiOut = include('lib/midi_out')
 
 local hi_level = 15
@@ -36,8 +37,7 @@ function DetailsUI:new()
   i.play_label = Label.new({x=45, y=63, text="PLAY", font_size=font_size})
   i.playpos_label = Label.new({x=99, y=63, level=hi_level, font_size=font_size})
 
-  i._alt_key_down_time = nil
-  i._alt_action_taken = false
+  i._tap_tempo = TapTempo.new()
 
   return i
 end
@@ -55,8 +55,8 @@ function DetailsUI:add_params_for_track(track)
 end
 
 function DetailsUI:enc(n, delta, sequencer)
-  if self._alt_key_down_time then
-    self._alt_action_taken = true
+  -- We're using tap_tempo:is_in_tap_tempo_mode as our general "alt mode"
+  if self._tap_tempo:is_in_tap_tempo_mode() then
     mix:delta("output", delta)
     UIState.screen_dirty = true
   else
@@ -71,22 +71,15 @@ function DetailsUI:enc(n, delta, sequencer)
 end
 
 function DetailsUI:key(n, z, sequencer)
+  local tempo, short_circuit_value = self._tap_tempo:key(n, z)
+  if tempo and params:get("clock_source") == 1 then
+    params:set("clock_tempo", tempo)
+  end
+  if short_circuit_value ~= nil then
+    return short_circuit_value
+  end
+
   if n == 2 then
-    if z == 1 then
-      self._alt_key_down_time = util.time()
-      return
-    end
-
-    -- Key up on K2 after an alt action was taken, or even just after a longer held time, counts as nothing
-    if self._alt_key_down_time then
-      local key_down_duration = util.time() - self._alt_key_down_time
-      self._alt_key_down_time = nil
-      if self._alt_action_taken or key_down_duration > CLICK_DURATION then
-        self._alt_action_taken = false
-        return
-      end
-    end
-
     if sequencer.playing == false then
       sequencer:move_to_start()
       UIState.grid_dirty = true
