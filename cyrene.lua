@@ -53,8 +53,8 @@
 -- and Step, by @jah
 --
 --
--- v1.2.0 @21echoes
-local current_version = "1.2.0"
+-- v1.3.0 @21echoes
+local current_version = "1.3.0"
 
 engine.name = 'Ack'
 
