@@ -32,14 +32,6 @@ local INPUT_PARAMS = {
   }
 }
 
-local function init_outputs()
-  for track=1,NUM_OUTS do
-    local attack = params:get("crow_out_"..track.."_attack")
-    local release = params:get("crow_out_"..track.."_release")
-    c.output[track].action = "ar("..attack..", "..release..", "..ENV_LEVEL..")"
-  end
-end
-
 local function query_input(track)
   c.input[track].stream = function(v)
     if CrowIO:is_crow_in_enabled() then
@@ -61,7 +53,6 @@ local function init_inputs()
 end
 
 function CrowIO:initialize()
-  init_outputs()
   init_inputs()
 end
 
@@ -85,6 +76,9 @@ function CrowIO:add_params()
 end
 
 function CrowIO:gate_on(track)
+  local attack = params:get("crow_out_"..track.."_attack")
+  local release = params:get("crow_out_"..track.."_release")
+  c.output[track].action = "ar("..attack..", "..release..", "..ENV_LEVEL..")"
   c.output[track].execute()
 end
 
