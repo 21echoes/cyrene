@@ -53,8 +53,8 @@
 -- and Step, by @jah
 --
 --
--- v1.2.0 @21echoes
-local current_version = "1.2.0"
+-- v1.3.0 @21echoes
+local current_version = "1.3.0"
 
 engine.name = 'Ack'
 
@@ -111,12 +111,12 @@ local function init_params()
   local is_first_launch = not sequencer:has_pattern_file()
   if is_first_launch then
     _set_sample(1, "audio/common/808/808-BD.wav", -10.0)
-    _set_sample(2, "audio/common/808/808-SD.wav", -20.0)
-    _set_sample(3, "audio/common/808/808-CH.wav", -15.0)
-    _set_sample(4, "audio/common/808/808-OH.wav", -22.0)
-    _set_sample(5, "audio/common/808/808-MA.wav", -15.0)
-    _set_sample(6, "audio/common/808/808-RS.wav", -21.0)
-    _set_sample(7, "audio/common/808/808-HC.wav", -25.0)
+    _set_sample(2, "audio/common/808/808-SD.wav", -15.0)
+    _set_sample(3, "audio/common/808/808-CH.wav", -10.0)
+    _set_sample(4, "audio/common/808/808-OH.wav", -17.0)
+    _set_sample(5, "audio/common/808/808-MA.wav", -10.0)
+    _set_sample(6, "audio/common/808/808-RS.wav", -16.0)
+    _set_sample(7, "audio/common/808/808-HC.wav", -20.0)
   end
 end
 
