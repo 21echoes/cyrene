@@ -59,6 +59,7 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 * the Ack engine
 * grid optional but encouraged (varibright especially, 8 or 16 wide)
 * arc optional
+* crow optional
 
 ## Roadmap
 * Hold K2 and tap K3 for tap tempo
