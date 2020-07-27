@@ -50,9 +50,9 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 
 ### Crow (optional)
   * Editable from the params menu:
-    * Cyrene track associated with the output
-    * Each track's attack and release envelope
-    * The param modulated by the input voltage
+    * Cyrene track associated with each output
+    * Each output's attack and release envelope
+    * The param modulated by each input voltage
 
 ## Requirements
 * norns
