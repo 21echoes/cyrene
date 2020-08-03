@@ -4,6 +4,7 @@ local DrumMap = include('lib/grids_patterns')
 local Euclidean = include('lib/euclidean')
 local MidiOut = include('lib/midi_out')
 local EuclideanUI = include('lib/ui/euclidean')
+local CrowIO = include('lib/crow_io')
 
 local PATTERN_FILE = "step.data"
 
@@ -343,6 +344,15 @@ function Sequencer:tick()
     if MidiOut:is_midi_out_enabled() then
       for y=1,7 do
         MidiOut:note_on(y, ts[y] * math.floor(velocities[y] / 2))
+      end
+    end
+
+    if CrowIO:is_crow_out_enabled() then
+      for y=1,CrowIO:num_outs() do
+        local sel_track = params:get("crow_out_"..y.."_track")
+        if ts[sel_track] == 1 then
+          CrowIO:gate_on(y)
+        end
       end
     end
 

@@ -48,16 +48,20 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
   * Encoder 1 controls tempo
   * Encoder 2 controls swing
 
+### Crow (optional)
+  * Editable from the params menu:
+    * Cyrene track associated with each output
+    * Each output's attack and release envelope
+    * The param modulated by each input voltage
+
 ## Requirements
 * norns
 * the Ack engine
 * grid optional but encouraged (varibright especially, 8 or 16 wide)
 * arc optional
+* crow optional
 
 ## Roadmap
 * Hold K2 and tap K3 for tap tempo
 * Velocity / different volumes / MI Grids-style "accent" support
 * Multi-sample mode: use multiple samples on the same track (e.g. two slightly different kick drums) for more realism
-* Crow support
-  * Map crow inputs to control a parameter (tempo, x, kick density, etc.)
-  * Crow outputs are triggers for tracks 1 thru 4

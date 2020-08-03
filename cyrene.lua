@@ -68,6 +68,7 @@ local MoreDensityUI = include('lib/ui/more_density')
 local EuclideanUI = include('lib/ui/euclidean')
 local UIState = include('lib/ui/util/devices')
 local GridUI = include('lib/ui/grid')
+local CrowIO = include('lib/crow_io')
 
 local launch_version
 
@@ -105,6 +106,7 @@ local function init_params()
   params:add_group("Effects", 6)
   Ack.add_effects_params() -- 6 params
   MidiOut:add_params()
+  CrowIO:add_params()
 
   local is_first_launch = not sequencer:has_pattern_file()
   if is_first_launch then
@@ -179,6 +181,7 @@ function init()
   sequencer:initialize()
   sequencer:start()
   MidiOut:start_at_beginning()
+  CrowIO:initialize()
 
   params:read()
   params:set("cyrene_version", current_version)
