@@ -44,6 +44,14 @@
 --    then click next to alt
 --    to go back
 --
+-- Crow (optional):
+-- Configurable
+--  via params menu
+-- Outputs are envelopes
+--  per track
+-- Inputs modulate
+--  selected params
+--
 -- Change samples, fx, etc
 --  via the params menu
 --
@@ -53,8 +61,8 @@
 -- and Step, by @jah
 --
 --
--- v1.3.0 @21echoes
-local current_version = "1.3.0"
+-- v1.4.0 @21echoes
+local current_version = "1.4.0"
 
 engine.name = 'Ack'
 

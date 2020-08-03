@@ -45,14 +45,14 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
   * Click any track (rows 1-7) to enter probability editing mode for that track. Y axis now shows probability of a trigger firing on that step. Pagination works as usual, and you can click the key to the left of the alt key to go back to the default multi-track view
 
 ### Arc (optional)
-  * Encoder 1 controls tempo
-  * Encoder 2 controls swing
+* Encoder 1 controls tempo
+* Encoder 2 controls swing
 
 ### Crow (optional)
-  * Editable from the params menu:
-    * Cyrene track associated with each output
-    * Each output's attack and release envelope
-    * The param modulated by each input voltage
+* Editable from the params menu:
+  * Cyrene track associated with each output
+  * Each output's attack and release envelope
+  * The param modulated by each input voltage
 
 ## Requirements
 * norns
@@ -62,6 +62,5 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 * crow optional
 
 ## Roadmap
-* Hold K2 and tap K3 for tap tempo
-* Velocity / different volumes / MI Grids-style "accent" support
+* MI Grids-style "accent" support
 * Multi-sample mode: use multiple samples on the same track (e.g. two slightly different kick drums) for more realism
