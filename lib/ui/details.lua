@@ -102,7 +102,7 @@ end
 
 function DetailsUI:redraw(sequencer)
   self.enc1_title_label:redraw()
-  self.enc1_val_label.text = util.round(params:get("output_level"), 1) .. " dB"
+  self.enc1_val_label.text = util.round(params:get_raw("output_level") *100,1)
   self.enc1_val_label:redraw()
 
   if UIState.show_event_indicator then
