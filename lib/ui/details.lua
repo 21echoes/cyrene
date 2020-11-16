@@ -57,7 +57,7 @@ end
 function DetailsUI:enc(n, delta, sequencer)
   -- We're using tap_tempo:is_in_tap_tempo_mode as our general "alt mode"
   if self._tap_tempo:is_in_tap_tempo_mode() then
-    mix:delta("output", delta)
+    params:delta("output_level", delta)
     UIState.screen_dirty = true
   else
     if n == 2 then
@@ -102,7 +102,7 @@ end
 
 function DetailsUI:redraw(sequencer)
   self.enc1_title_label:redraw()
-  self.enc1_val_label.text = util.round(mix:get_raw("output")*100, 1)
+  self.enc1_val_label.text = util.round(params:get("output_level"), 1) .. " dB"
   self.enc1_val_label:redraw()
 
   if UIState.show_event_indicator then
