@@ -143,8 +143,7 @@ local function init_ui()
     delta_callback = function(n, delta)
       if n == 1 then
         if params:get("clock_source") == 1 then
-          local val = params:get_raw("clock_tempo")
-          params:set("clock_tempo", val+delta/500)
+          params:delta("clock_tempo", delta)
         end
       elseif n == 2 then
         local val = params:get_raw("swing_amount")
@@ -153,7 +152,7 @@ local function init_ui()
     end,
     refresh_callback = function(my_arc)
       my_arc:all(0)
-      my_arc:led(1, util.round(params:get("clock_tempo")*64), 15)
+      my_arc:led(1, util.round(params:get("clock_tempo")*64/300), 15)
       my_arc:led(2, util.round(params:get_raw("swing_amount")*64), 15)
     end
   }
