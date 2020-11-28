@@ -47,7 +47,8 @@
 -- Crow (optional):
 -- Configurable
 --  via params menu
--- Outputs are envelopes
+-- Outputs are gates
+--  or envelopes
 --  per track
 -- Inputs modulate
 --  selected params
@@ -61,8 +62,8 @@
 -- and Step, by @jah
 --
 --
--- v1.4.1 @21echoes
-local current_version = "1.4.1"
+-- v1.5.0 @21echoes
+local current_version = "1.5.0"
 
 engine.name = 'Ack'
 
