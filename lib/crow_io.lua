@@ -57,11 +57,12 @@ function CrowIO:initialize()
 end
 
 function CrowIO:add_params()
-  params:add_group("Crow", 16)
+  params:add_group("Crow", 20)
   params:add_option("crow_out", "Enable Crow Out?", {"Off", "On"}, 2)
   params:add_option("crow_in", "Enable Crow In?", {"Off", "On"}, 2)
   for track=1, NUM_OUTS do
     params:add_number("crow_out_"..track.."_track", "out "..track..": track", 1, NUM_TRACKS, track)
+    params:add_option("crow_out_"..track.."_mode", "out "..track..": mode", {"Env", "Gate"}, 2)
     params:add_control("crow_out_"..track.."_attack", "out "..track..": attack", controlspec.new(0.03, 10, 'lin', 0, ENV_ATTACK))
     params:add_control("crow_out_"..track.."_release", "out "..track..": release", controlspec.new(0.03, 10, 'lin', 0, ENV_RELEASE))
   end
@@ -76,9 +77,15 @@ function CrowIO:add_params()
 end
 
 function CrowIO:gate_on(track)
-  local attack = params:get("crow_out_"..track.."_attack")
-  local release = params:get("crow_out_"..track.."_release")
-  c.output[track].action = "ar("..attack..", "..release..", "..ENV_LEVEL..")"
+  local type = params:get("crow_out_"..track.."_mode")
+
+  if type == 1 then
+    local attack = params:get("crow_out_"..track.."_attack")
+    local release = params:get("crow_out_"..track.."_release")
+    c.output[track].action = "ar("..attack..", "..release..", "..ENV_LEVEL..")"
+  elseif type == 2 then
+    c.output[track].action = "pulse(0.25, 5, 1)"
+  end
   c.output[track].execute()
 end
 
