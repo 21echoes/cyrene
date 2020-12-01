@@ -149,12 +149,18 @@ local function init_ui()
       elseif n == 2 then
         local val = params:get_raw("swing_amount")
         params:set_raw("swing_amount", val+delta/500)
+      elseif n == 3 then
+        params:delta("grids_pattern_x", delta)
+      elseif n == 4 then
+        params:delta("grids_pattern_y", delta)
       end
     end,
     refresh_callback = function(my_arc)
       my_arc:all(0)
       my_arc:led(1, util.round(params:get("clock_tempo")*64/300), 15)
       my_arc:led(2, util.round(params:get_raw("swing_amount")*64), 15)
+      my_arc:led(3, util.round(params:get("grids_pattern_x")/255*64), 15)
+      my_arc:led(4, util.round(params:get("grids_pattern_y")/255*64), 15)
     end
   }
 
