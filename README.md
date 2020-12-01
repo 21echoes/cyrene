@@ -47,6 +47,8 @@ Mutable Instruments Grids comes with 65,025 preset kick, snare, and hi-hat patte
 ### Arc (optional)
 * Encoder 1 controls tempo
 * Encoder 2 controls swing
+* Encoder 3 controls pattern X
+* Encoder 4 controls pattern Y
 
 ### Crow (optional)
 * Editable from the params menu:

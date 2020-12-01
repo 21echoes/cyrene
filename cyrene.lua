@@ -53,6 +53,12 @@
 -- Inputs modulate
 --  selected params
 --
+-- Arc (optional):
+-- E1: Tempo
+-- E2: Swing
+-- E3: Pattern X
+-- E4: Pattern Y
+--
 -- Change samples, fx, etc
 --  via the params menu
 --
@@ -62,8 +68,8 @@
 -- and Step, by @jah
 --
 --
--- v1.5.0 @21echoes
-local current_version = "1.5.0"
+-- v1.5.1 @21echoes
+local current_version = "1.5.1"
 
 engine.name = 'Ack'
 
