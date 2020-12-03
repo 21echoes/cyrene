@@ -2,8 +2,9 @@
 -- Create a new instance to support Arc devices
 --
 -- @classmod Arcify
--- @release v1.0.0
+-- @release v2.0.0
 -- @author Mimetaur (https://github.com/mimetaur)
+-- Modifications by @21echoes
 
 local Arcify = {}
 Arcify.__index = Arcify
