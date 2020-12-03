@@ -34,7 +34,7 @@ function PatternAndDensityUI:new()
   return i
 end
 
-function PatternAndDensityUI:add_params()
+function PatternAndDensityUI:add_params(arcify)
   params:add {
     type="number",
     id="grids_pattern_x",
@@ -44,6 +44,7 @@ function PatternAndDensityUI:add_params()
     default=128,
     action=function(value) UIState.screen_dirty = true end
   }
+  arcify:register("grids_pattern_x")
   params:add {
     type="number",
     id="grids_pattern_y",
@@ -53,6 +54,7 @@ function PatternAndDensityUI:add_params()
     default=128,
     action=function(value) UIState.screen_dirty = true end
   }
+  arcify:register("grids_pattern_y")
   params:add {
     type="number",
     id="pattern_chaos",
@@ -66,16 +68,13 @@ function PatternAndDensityUI:add_params()
       UIState.screen_dirty = true
     end
   }
+  arcify:register("pattern_chaos")
 end
 
-function PatternAndDensityUI:add_params_for_track(track)
+function PatternAndDensityUI:add_params_for_track(track, arcify)
   -- MoreDensityUI handles tracks 4 and beyond
   if track > 3 then return end
-  local param_id
-  if track == 1 then param_id = "kick_density"
-  elseif track == 2 then param_id = "snare_density"
-  elseif track == 3 then param_id = "hat_density"
-  end
+  local param_id = track.."_density"
   local param_name = track..": Density"
   local val_label
   if track == 1 then val_label = self.kick_val_label
@@ -95,6 +94,7 @@ function PatternAndDensityUI:add_params_for_track(track)
       UIState.screen_dirty = true
     end
   }
+  arcify:register(param_id)
 end
 
 function PatternAndDensityUI:enc(n, delta, sequencer)
@@ -106,13 +106,13 @@ function PatternAndDensityUI:enc(n, delta, sequencer)
     end
   elseif self._section == 1 then
     if n == 2 then
-      params:delta('kick_density', delta)
+      params:delta('1_density', delta)
     elseif n == 3 then
-      params:delta('snare_density', delta)
+      params:delta('2_density', delta)
     end
   elseif self._section == 2 then
     if n == 2 then
-      params:delta('hat_density', delta)
+      params:delta('3_density', delta)
     elseif n == 3 then
       params:delta('pattern_chaos', delta)
     end

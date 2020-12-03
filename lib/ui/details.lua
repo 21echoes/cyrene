@@ -42,7 +42,7 @@ function DetailsUI:new()
   return i
 end
 
-function DetailsUI:add_params()
+function DetailsUI:add_params(arcify)
   local default_clock_source_action = params:lookup_param("clock_source").action
   params:set_action("clock_source", function(val)
     UIState.screen_dirty = true
@@ -51,7 +51,7 @@ function DetailsUI:add_params()
   -- TODO: move tempo and swing in here
 end
 
-function DetailsUI:add_params_for_track(track)
+function DetailsUI:add_params_for_track(track, arcify)
 end
 
 function DetailsUI:enc(n, delta, sequencer)
@@ -102,7 +102,7 @@ end
 
 function DetailsUI:redraw(sequencer)
   self.enc1_title_label:redraw()
-  self.enc1_val_label.text = util.round(params:get_raw("output_level") *100,1)
+  self.enc1_val_label.text = util.round(params:get_raw("output_level")/0.707*100,1)
   self.enc1_val_label:redraw()
 
   if UIState.show_event_indicator then

@@ -48,7 +48,9 @@ function Sequencer:new()
   return i
 end
 
-function Sequencer:add_params()
+function Sequencer:add_params(arcify)
+  arcify:register("clock_tempo")
+  arcify:register("clock_source")
   params:add {
     type="number",
     id="pattern",
@@ -60,6 +62,7 @@ function Sequencer:add_params()
       UI.grid_dirty = true
     end
   }
+  arcify:register("pattern")
   params:add {
     type="number",
     id="pattern_length",
@@ -68,6 +71,7 @@ function Sequencer:add_params()
     max=MAX_PATTERN_LENGTH,
     default=16
   }
+  arcify:register("pattern_length")
   params:add {
     type="option",
     id="grid_resolution",
@@ -81,6 +85,7 @@ function Sequencer:add_params()
       self:_update_clock_sync_resolution()
     end
   }
+  arcify:register("grid_resolution")
   params:add {
     type="control",
     id="swing_amount",
@@ -92,6 +97,7 @@ function Sequencer:add_params()
       UI.arc_dirty = true
     end
   }
+  arcify:register("swing_amount")
   params:add {
     type="option",
     id="cut_quant",
@@ -99,6 +105,7 @@ function Sequencer:add_params()
     options={"No", "Yes"},
     default=1
   }
+  arcify:register("cut_quant")
   local default_tempo_action = params:lookup_param("clock_tempo").action
   params:set_action("clock_tempo", function(val)
     default_tempo_action(val)
@@ -318,14 +325,7 @@ function Sequencer:tick()
       -- This seems... wrong to me, so I've made sure that if the trigger map says zero, that means no triggers happen.
       trig_level = trig_level ~= 0 and util.clamp(trig_level + self.part_perturbations[y], 0, 255) or 0
       local threshold
-      local param_id = "track" .. y .. "_density"
-      if y == 1 then
-        param_id = "kick_density"
-      elseif y == 2 then
-        param_id = "snare_density"
-      elseif y == 3 then
-        param_id = "hat_density"
-      end
+      local param_id = y .. "_density"
       threshold = 255 - util.round(params:get(param_id) * 255 / 100)
       if trig_level > threshold then
         ts[y] = 1

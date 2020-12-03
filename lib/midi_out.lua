@@ -18,12 +18,16 @@ local DEFAULT_NOTES = {
   63, -- High Conga
 }
 
-function MidiOut:add_params()
+function MidiOut:add_params(arcify)
   params:add_group("MIDI", 1 + (NUM_TRACKS * 2))
   params:add_option("midi_out", "Send MIDI?", {"Off", "On"}, 2)
   for track=1,NUM_TRACKS do
-    params:add_number("track"..track.."_midi_note", track..": midi note", 0, 127, DEFAULT_NOTES[track])
-    params:add_number("track"..track.."_midi_chan", track..": midi chan", 1, 16, 1)
+    local note_param_id = track.."_midi_note"
+    params:add_number(note_param_id, track..": midi note", 0, 127, DEFAULT_NOTES[track])
+    arcify:register(note_param_id)
+    local chan_param_id = track.."_midi_chan"
+    params:add_number(chan_param_id, track..": midi chan", 1, 16, 1)
+    arcify:register(chan_param_id)
   end
 end
 
@@ -34,9 +38,9 @@ end
 function MidiOut:note_on(track, velocity)
   if not self:is_midi_out_enabled() then return end
   m:note_on(
-    params:get("track"..track.."_midi_note"),
+    params:get(track.."_midi_note"),
     velocity,
-    params:get("track"..track.."_midi_chan")
+    params:get(track.."_midi_chan")
   )
   active_midi_notes[track] = velocity
 end
@@ -45,9 +49,9 @@ function MidiOut:turn_off_active_notes()
   for track=1,NUM_TRACKS do
     if active_midi_notes[track] ~= 0 then
       m:note_off(
-        params:get("track"..track.."_midi_note"),
+        params:get(track.."_midi_note"),
         active_midi_notes[track],
-        params:get("track"..track.."_midi_chan")
+        params:get(track.."_midi_chan")
       )
       active_midi_notes[track] = 0
     end
