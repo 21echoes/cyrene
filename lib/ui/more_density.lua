@@ -39,7 +39,7 @@ function MoreDensityUI:new()
   return i
 end
 
-function MoreDensityUI:add_params_for_track(track)
+function MoreDensityUI:add_params_for_track(track, arcify)
   -- PatternAndDensityUI handles tracks 1-3
   if track < 4 then return end
   local param_id = "track"..track.."_density"
@@ -58,6 +58,7 @@ function MoreDensityUI:add_params_for_track(track)
       UIState.screen_dirty = true
     end
   }
+  arcify:register(param_id)
 end
 
 function MoreDensityUI:enc(n, delta, sequencer)

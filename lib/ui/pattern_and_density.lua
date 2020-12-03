@@ -34,7 +34,7 @@ function PatternAndDensityUI:new()
   return i
 end
 
-function PatternAndDensityUI:add_params()
+function PatternAndDensityUI:add_params(arcify)
   params:add {
     type="number",
     id="grids_pattern_x",
@@ -44,6 +44,7 @@ function PatternAndDensityUI:add_params()
     default=128,
     action=function(value) UIState.screen_dirty = true end
   }
+  arcify:register("grids_pattern_x")
   params:add {
     type="number",
     id="grids_pattern_y",
@@ -53,6 +54,7 @@ function PatternAndDensityUI:add_params()
     default=128,
     action=function(value) UIState.screen_dirty = true end
   }
+  arcify:register("grids_pattern_y")
   params:add {
     type="number",
     id="pattern_chaos",
@@ -66,9 +68,10 @@ function PatternAndDensityUI:add_params()
       UIState.screen_dirty = true
     end
   }
+  arcify:register("pattern_chaos")
 end
 
-function PatternAndDensityUI:add_params_for_track(track)
+function PatternAndDensityUI:add_params_for_track(track, arcify)
   -- MoreDensityUI handles tracks 4 and beyond
   if track > 3 then return end
   local param_id
@@ -95,6 +98,7 @@ function PatternAndDensityUI:add_params_for_track(track)
       UIState.screen_dirty = true
     end
   }
+  arcify:register(param_id)
 end
 
 function PatternAndDensityUI:enc(n, delta, sequencer)

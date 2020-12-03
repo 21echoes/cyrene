@@ -56,23 +56,33 @@ function CrowIO:initialize()
   init_inputs()
 end
 
-function CrowIO:add_params()
+function CrowIO:add_params(arcify)
   params:add_group("Crow", 20)
   params:add_option("crow_out", "Enable Crow Out?", {"Off", "On"}, 2)
   params:add_option("crow_in", "Enable Crow In?", {"Off", "On"}, 2)
   for track=1, NUM_OUTS do
-    params:add_number("crow_out_"..track.."_track", "out "..track..": track", 1, NUM_TRACKS, track)
-    params:add_option("crow_out_"..track.."_mode", "out "..track..": mode", {"Env", "Gate"}, 2)
-    params:add_control("crow_out_"..track.."_attack", "out "..track..": attack", controlspec.new(0.03, 10, 'lin', 0, ENV_ATTACK))
-    params:add_control("crow_out_"..track.."_release", "out "..track..": release", controlspec.new(0.03, 10, 'lin', 0, ENV_RELEASE))
+    local track_param_id = "crow_out_"..track.."_track"
+    params:add_number(track_param_id, "out "..track..": track", 1, NUM_TRACKS, track)
+    arcify:register(track_param_id)
+    local mode_param_id = "crow_out_"..track.."_mode"
+    params:add_option(mode_param_id, "out "..track..": mode", {"Env", "Gate"}, 2)
+    arcify:register(mode_param_id)
+    local attack_param_id = "crow_out_"..track.."_attack"
+    params:add_control(attack_param_id, "out "..track..": attack", controlspec.new(0.03, 10, 'lin', 0, ENV_ATTACK))
+    arcify:register(attack_param_id)
+    local release_param_id = "crow_out_"..track.."_release"
+    params:add_control(release_param_id, "out "..track..": release", controlspec.new(0.03, 10, 'lin', 0, ENV_RELEASE))
+    arcify:register(release_param_id)
   end
   for track=1, NUM_INS do
+    local param_id = "crow_in_"..track.."_param"
     params:add_option(
-      "crow_in_"..track.."_param",
+      param_id,
       "in "..track..": param",
       {"Pattern X", "Pattern Y", "Swing", "Chaos", "Off"},
       1
     )
+    arcify:register(param_id)
   end
 end
 

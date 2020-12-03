@@ -18,12 +18,16 @@ local DEFAULT_NOTES = {
   63, -- High Conga
 }
 
-function MidiOut:add_params()
+function MidiOut:add_params(arcify)
   params:add_group("MIDI", 1 + (NUM_TRACKS * 2))
   params:add_option("midi_out", "Send MIDI?", {"Off", "On"}, 2)
   for track=1,NUM_TRACKS do
-    params:add_number("track"..track.."_midi_note", track..": midi note", 0, 127, DEFAULT_NOTES[track])
-    params:add_number("track"..track.."_midi_chan", track..": midi chan", 1, 16, 1)
+    local note_param_id = "track"..track.."_midi_note"
+    params:add_number(note_param_id, track..": midi note", 0, 127, DEFAULT_NOTES[track])
+    arcify:register(note_param_id)
+    local chan_param_id = "track"..track.."_midi_chan"
+    params:add_number(chan_param_id, track..": midi chan", 1, 16, 1)
+    arcify:register(chan_param_id)
   end
 end
 

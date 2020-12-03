@@ -84,6 +84,7 @@ local EuclideanUI = include('lib/ui/euclidean')
 local UIState = include('lib/ui/util/devices')
 local GridUI = include('lib/ui/grid')
 local CrowIO = include('lib/crow_io')
+local Arcify = include("lib/arcify")
 
 local launch_version
 
@@ -93,6 +94,9 @@ local pages_table
 local ui_refresh_metro
 local NUM_TRACKS = 7
 
+local arc_device = arc.connect()
+local arcify = Arcify.new(arc_device, false)
+
 local function init_params()
   params:add_separator()
   params:add {
@@ -101,7 +105,7 @@ local function init_params()
     type="text",
   }
   params:hide(params.lookup["cyrene_version"])
-  sequencer:add_params()
+  sequencer:add_params(arcify)
   -- Only the first 2 pages have any generic params
   pages_table[1]:add_params()
   pages_table[2]:add_params()
@@ -114,14 +118,43 @@ local function init_params()
     params:add_group(group_name, 27)
     -- All the pages together add 5 params per track
     for i, page in ipairs(pages_table) do
-      pages_table[i]:add_params_for_track(track)
+      pages_table[i]:add_params_for_track(track, arcify)
     end
     Ack.add_channel_params(track) -- 22 params
+    -- all params except the file are arcifyed
+    arcify:register(track.."_start_pos")
+    arcify:register(track.."_end_pos")
+    arcify:register(track.."_loop")
+    arcify:register(track.."_loop_point")
+    arcify:register(track.."_speed")
+    arcify:register(track.."_vol")
+    arcify:register(track.."_vol_env_atk")
+    arcify:register(track.."_vol_env_rel")
+    arcify:register(track.."_pan")
+    arcify:register(track.."_filter_cutoff")
+    arcify:register(track.."_filter_res")
+    arcify:register(track.."_filter_mode")
+    arcify:register(track.."_filter_env_atk")
+    arcify:register(track.."_filter_env_rel")
+    arcify:register(track.."_filter_env_mod")
+    arcify:register(track.."_sample_rate")
+    arcify:register(track.."_bit_depth")
+    arcify:register(track.."_dist")
+    arcify:register(track.."_in_mutegroup")
+    arcify:register(track.."_delay_send")
+    arcify:register(track.."_reverb_send")
   end
   params:add_group("Effects", 6)
   Ack.add_effects_params() -- 6 params
-  MidiOut:add_params()
-  CrowIO:add_params()
+  arcify:register("delay_time")
+  arcify:register("delay_feedback")
+  arcify:register("delay_level")
+  arcify:register("reverb_room_size")
+  arcify:register("reverb_damp")
+  arcify:register("reverb_level")
+  MidiOut:add_params(arcify)
+  CrowIO:add_params(arcify)
+  arcify:add_params()
 
   local is_first_launch = not sequencer:has_pattern_file()
   if is_first_launch then
@@ -132,6 +165,12 @@ local function init_params()
     _set_sample(5, "audio/common/808/808-MA.wav", -10.0)
     _set_sample(6, "audio/common/808/808-RS.wav", -16.0)
     _set_sample(7, "audio/common/808/808-HC.wav", -20.0)
+
+    -- TODO: lookup these magic numbers by their known strings
+    params:set("arc_encoder1_mapping", 2) -- "clock_tempo"
+    params:set("arc_encoder2_mapping", 7) -- "swing_amount"
+    params:set("arc_encoder3_mapping", 9) -- "grids_pattern_x"
+    params:set("arc_encoder4_mapping", 10) -- "grids_pattern_y"
   end
 end
 
@@ -146,26 +185,16 @@ local function init_ui()
   pages = UI.Pages.new(1, #pages_table)
 
   UIState.init_arc {
-    device = arc.connect(),
+    device = arc_device,
     delta_callback = function(n, delta)
-      if n == 1 then
-        if params:get("clock_source") == 1 then
-          params:delta("clock_tempo", delta)
-        end
-      elseif n == 2 then
-        params:delta("swing_amount", delta)
-      elseif n == 3 then
-        params:delta("grids_pattern_x", delta)
-      elseif n == 4 then
-        params:delta("grids_pattern_y", delta)
+      -- Ignore attempts to change the tempo when the tempo source is external
+      if arcify:param_id_at_encoder(n) == "clock_tempo" and params:get("clock_source") ~= 1 then
+        return
       end
+      arcify:update(n, delta)
     end,
     refresh_callback = function(my_arc)
-      my_arc:all(0)
-      my_arc:led(1, util.round(params:get("clock_tempo")/280*64), 15)
-      my_arc:led(2, util.round(params:get("swing_amount")/100*64), 15)
-      my_arc:led(3, util.round(params:get("grids_pattern_x")/255*64), 15)
-      my_arc:led(4, util.round(params:get("grids_pattern_y")/255*64), 15)
+      arcify:redraw()
     end
   }
 

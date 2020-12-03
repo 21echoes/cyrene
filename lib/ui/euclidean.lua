@@ -42,12 +42,13 @@ function EuclideanUI:new(sequencer)
   return i
 end
 
-function EuclideanUI:add_params_for_track(track)
+function EuclideanUI:add_params_for_track(track, arcify)
   local track_id_prefix = self.param_id_prefix_for_track(track)
   local track_name_prefix = track..":"
+  local eucl_mode_param_id = track_id_prefix.."_euclidean_enabled"
   params:add {
     type="option",
-    id=track_id_prefix.."_euclidean_enabled",
+    id=eucl_mode_param_id,
     name=track_name_prefix.." Euclidean Mode",
     options={"Off", "On"},
     default=1,
@@ -57,9 +58,9 @@ function EuclideanUI:add_params_for_track(track)
       UIState.screen_dirty = true
     end
   }
+  arcify:register(eucl_mode_param_id)
+
   local eucl_length_param_id = track_id_prefix.."_euclidean_length"
-  local eucl_trigs_param_id = track_id_prefix.."_euclidean_trigs"
-  local eucl_rotation_param_id = track_id_prefix.."_euclidean_rotation"
   params:add {
     type="number",
     id=eucl_length_param_id,
@@ -77,6 +78,9 @@ function EuclideanUI:add_params_for_track(track)
       UIState.screen_dirty = true
     end
   }
+  arcify:register(eucl_length_param_id)
+
+  local eucl_trigs_param_id = track_id_prefix.."_euclidean_trigs"
   params:add {
     type="number",
     id=eucl_trigs_param_id,
@@ -96,6 +100,9 @@ function EuclideanUI:add_params_for_track(track)
       UIState.screen_dirty = true
     end
   }
+  arcify:register(eucl_trigs_param_id)
+
+  local eucl_rotation_param_id = track_id_prefix.."_euclidean_rotation"
   params:add {
     type="number",
     id=eucl_rotation_param_id,
@@ -114,6 +121,7 @@ function EuclideanUI:add_params_for_track(track)
       UIState.screen_dirty = true
     end
   }
+  arcify:register(eucl_rotation_param_id)
 end
 
 function EuclideanUI:enc(n, delta, sequencer)
