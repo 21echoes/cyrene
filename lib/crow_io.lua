@@ -65,7 +65,7 @@ function CrowIO:add_params(arcify)
     params:add_number(track_param_id, "out "..track..": track", 1, NUM_TRACKS, track)
     arcify:register(track_param_id)
     local mode_param_id = "crow_out_"..track.."_mode"
-    params:add_option(mode_param_id, "out "..track..": mode", {"Env", "Gate"}, 2)
+    params:add_option(mode_param_id, "out "..track..": mode", {"Off", "Env", "Gate"}, 3)
     arcify:register(mode_param_id)
     local attack_param_id = "crow_out_"..track.."_attack"
     params:add_control(attack_param_id, "out "..track..": attack", controlspec.new(0.03, 10, 'lin', 0, ENV_ATTACK))
@@ -90,10 +90,12 @@ function CrowIO:gate_on(track)
   local type = params:get("crow_out_"..track.."_mode")
 
   if type == 1 then
+    return
+  elseif type == 2 then
     local attack = params:get("crow_out_"..track.."_attack")
     local release = params:get("crow_out_"..track.."_release")
     c.output[track].action = "ar("..attack..", "..release..", "..ENV_LEVEL..")"
-  elseif type == 2 then
+  elseif type == 3 then
     c.output[track].action = "pulse(0.25, 5, 1)"
   end
   c.output[track].execute()
