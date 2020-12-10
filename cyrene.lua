@@ -54,6 +54,10 @@
 --  selected params
 --
 -- Arc (optional):
+-- Use the params page
+-- to choose which params
+-- are controled by which enc
+-- Defaults:
 -- E1: Tempo
 -- E2: Swing
 -- E3: Pattern X
