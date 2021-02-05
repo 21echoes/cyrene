@@ -404,7 +404,7 @@ end
 function Sequencer:update_swing(swing_amount)
   local swing_ppqn = ppqn*swing_amount/100*0.75
   self.even_ppqn = util.round(ppqn+swing_ppqn)
-  self.odd_ppqn = util.round(ppqn-swing_ppqn)
+  self.odd_ppqn = (2 * ppqn) - self.even_ppqn
 end
 
 function Sequencer:has_pattern_file()
