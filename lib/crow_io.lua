@@ -98,7 +98,7 @@ function CrowIO:gate_on(track)
   elseif type == 3 then
     c.output[track].action = "pulse(0.25, 5, 1)"
   end
-  c.output[track].execute()
+  c.output[track]()
 end
 
 function CrowIO:num_outs()
