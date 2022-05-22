@@ -201,7 +201,7 @@ end
 -- @bool update_self By default, update its rings itself. False to update manually. (optional)
 -- @int update_rate By default, 25 fps (optional)
 -- @treturn Arcify Instance of Arcify.
-function Arcify.new(arc_obj, update_self, update_rate)
+function Arcify.new(arc_obj, do_update_self, update_rate)
     local ap = {}
     ap.a_ = arc_obj or arc.connect()
     ap.params_ = {}
@@ -210,7 +210,7 @@ function Arcify.new(arc_obj, update_self, update_rate)
     ap.shift_encoders_ = default_encoder_state()
     ap.is_shifted_ = false
     ap.update_self_ = do_update_self or true -- create a callback by default
-    ap.update_rate_ = update_rate or 1 / 25 -- 25 fps default
+    ap.update_rate_ = update_rate or (1 / 25) -- 25 fps default
 
     if ap.update_self_ then
         local function redraw_callback()
