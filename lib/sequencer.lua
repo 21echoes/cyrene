@@ -124,6 +124,8 @@ function Sequencer:start()
   if self._clock_id ~= nil then
     clock.cancel(self._clock_id)
   end
+  -- run the non-sync() innards of _clock_tick before running _clock_tick
+  self:tick()
   self._clock_id = clock.run(self._clock_tick, self)
 end
 
