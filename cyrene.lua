@@ -72,8 +72,8 @@
 -- and Step, by @jah
 --
 --
--- v1.6.2 @21echoes
-local current_version = "1.6.2"
+-- v1.7.0 @21echoes
+local current_version = "1.7.0"
 
 engine.name = 'Ack'
 
@@ -162,13 +162,13 @@ local function init_params()
 
   local is_first_launch = not sequencer:has_pattern_file()
   if is_first_launch then
-    _set_sample(1, "audio/common/808/808-BD.wav", -10.0)
-    _set_sample(2, "audio/common/808/808-SD.wav", -15.0)
-    _set_sample(3, "audio/common/808/808-CH.wav", -10.0)
-    _set_sample(4, "audio/common/808/808-OH.wav", -17.0)
-    _set_sample(5, "audio/common/808/808-MA.wav", -10.0)
-    _set_sample(6, "audio/common/808/808-RS.wav", -16.0)
-    _set_sample(7, "audio/common/808/808-HC.wav", -20.0)
+    _set_sample(1, "audio/x0x/808/808-BD.wav", -10.0)
+    _set_sample(2, "audio/x0x/808/808-SD.wav", -15.0)
+    _set_sample(3, "audio/x0x/808/808-CH.wav", -10.0)
+    _set_sample(4, "audio/x0x/808/808-OH.wav", -17.0)
+    _set_sample(5, "audio/x0x/808/808-MA.wav", -10.0)
+    _set_sample(6, "audio/x0x/808/808-RS.wav", -16.0)
+    _set_sample(7, "audio/x0x/808/808-HC.wav", -20.0)
 
     arcify:map_encoder_via_params(1, "clock_tempo")
     arcify:map_encoder_via_params(2, "swing_amount")
@@ -357,51 +357,70 @@ function _run_migrations()
   if _version_gt("1.2.-1", launch_version) then
     _upgrade_to_1_2_0()
   end
+  if _version_gt("1.7.-1", launch_version) then
+    _upgrade_to_1_7_0()
+  end
+end
+
+function scandir(directory)
+  local i, t = 0, {}
+  local pfile = io.popen('ls -a "'..directory..'"')
+  if not pfile then return t end
+  for filename in pfile:lines() do
+    if filename ~= '.' and filename ~= '..' then
+      i = i + 1
+      t[i] = filename
+    end
+  end
+  pfile:close()
+  return t
+end
+
+function _rewrite_pset(transform_func)
+  local dir = norns.state.data
+  local files = scandir(dir)
+  for i, local_filename in ipairs(files) do
+    local filename = dir .. local_filename
+    if filename:sub(-#".pset") == ".pset" then
+      local fd = io.open(filename, "r")
+      if fd then
+        local contents = fd:read("*all")
+        local new_contents = transform_func(contents)
+        io.close(fd)
+        if new_contents then
+          fd = io.open(filename,"w+")
+          if fd then
+            io.output(fd)
+            io.write(new_contents)
+            io.close(fd)
+          end
+        end
+      end
+    end
+  end
 end
 
 function _upgrade_to_1_1_0()
-  -- Remove all params for the 8th track. For some reason, they cause a crash on boot
-  local filename = norns.state.data .. norns.state.shortname
-  filename = filename .. "-" .. string.format("%02d",1) .. ".pset"
-  local fd = io.open(filename, "r")
-  if not fd then
-    return
-  end
-  local contents = fd:read("*all")
-  local new_contents = contents:gsub("\"8_(%S*):%s(%S*)", "")
-  io.close(fd)
-  local fd=io.open(filename,"w+")
-  io.output(fd)
-  io.write(new_contents)
-  io.close(fd)
+  _rewrite_pset(function(contents)
+    return contents:gsub("\"8_(%S*):%s(%S*)", "")
+  end)
 end
 
 function _upgrade_to_1_2_0()
-  -- Change the old options-based pattern_length to a real number of beats
-  local filename = norns.state.data .. norns.state.shortname
-  filename = filename .. "-" .. string.format("%02d",1) .. ".pset"
-  local fd = io.open(filename, "r")
-  if not fd then
-    return
-  end
-  local contents = fd:read("*all")
-  local old_pattern_length = contents:match("\"pattern_length\": (%d+)")
-  io.close(fd)
-  if not old_pattern_length then
-    return
-  end
-  local new_pattern_length = 16
-  if old_pattern_length == "1" then new_pattern_length = 8
-  elseif old_pattern_length == "2" then new_pattern_length = 16
-  elseif old_pattern_length == "3" then new_pattern_length = 32 end
-  local new_contents = contents:gsub(
-    "\"pattern_length\": "..old_pattern_length,
-    "\"pattern_length\": "..new_pattern_length
-  )
-  local fd=io.open(filename,"w+")
-  io.output(fd)
-  io.write(new_contents)
-  io.close(fd)
+  _rewrite_pset(function(contents)
+    local old_pattern_length = contents:match("\"pattern_length\": (%d+)")
+    if not old_pattern_length then
+      return nil
+    end
+    local new_pattern_length = 16
+    if old_pattern_length == "1" then new_pattern_length = 8
+    elseif old_pattern_length == "2" then new_pattern_length = 16
+    elseif old_pattern_length == "3" then new_pattern_length = 32 end
+    return contents:gsub(
+      "\"pattern_length\": "..old_pattern_length,
+      "\"pattern_length\": "..new_pattern_length
+    )
+  end)
 end
 
 function _upgrade_to_1_6_0()
@@ -409,4 +428,10 @@ function _upgrade_to_1_6_0()
   arcify:map_encoder_via_params(2, "grids_pattern_x")
   arcify:map_encoder_via_params(3, "grids_pattern_y")
   arcify:map_encoder_via_params(4, "pattern_chaos")
+end
+
+function _upgrade_to_1_7_0()
+  _rewrite_pset(function(contents)
+    return contents:gsub("audio/common/", "audio/x0x/")
+  end)
 end
