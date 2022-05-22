@@ -277,7 +277,7 @@ function Sequencer:_clock_tick()
 end
 
 function Sequencer:tick()
-  if queued_playpos and params:get("cut_quant") == 1 then
+  if self.queued_playpos and params:get("cut_quant") == 1 then
     self.ticks_to_next = 0
     self._raw_ticks = 0
   end
@@ -408,7 +408,7 @@ function Sequencer:update_swing(swing_amount)
 end
 
 function Sequencer:has_pattern_file()
-  return util.file_exists(norns.state.data .. PATTERN_FILE,"r")
+  return util.file_exists(norns.state.data .. PATTERN_FILE)
 end
 
 return Sequencer
