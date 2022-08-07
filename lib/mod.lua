@@ -9,6 +9,8 @@ local function action(chan, trig, velocity)
     matrix:set(channels[chan].."_vel", velocity)
 end
 
+local cyrene_sequencer
+
 local function pre_init()
     matrix:add_post_init_hook(function()
         if norns.state.name == "cyrene" then
@@ -29,7 +31,15 @@ local function pre_init()
             params:lookup_param("grids_active"):bang()
         end);
         sequencer:initialize()
+        cyrene_sequencer = sequencer
     end)
 end
 
 mod.hook.register("script_pre_init", "cyrene pre init", pre_init)
+
+mod.hook.register("script_post_cleanup", "stop cyrene", function()
+    if cyrene_sequencer ~= nil then
+        cyrene_sequencer:stop()
+        cyrene_sequencer = nil
+    end
+end)
