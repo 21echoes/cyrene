@@ -44,6 +44,8 @@ function Sequencer:new()
     i.part_perturbations[track] = 0
   end
   i._clock_id = nil
+  i._trip_map_index = 0
+  i._ppqn_error = 0
 
   return i
 end
@@ -86,6 +88,26 @@ function Sequencer:add_params(arcify)
     end
   }
   arcify:register("grid_resolution")
+  params:add {
+    type="option",
+    id="shuffle_basis",
+    name="Shuffle Basis",
+    options={
+      "Straight (w/swing)",
+      "7-tuplets",
+      "9-tuplets",
+      "5-tuplets",
+      "6-tuplets",
+      "Weird 8-tuplets",
+      "Weird 9-tuplets"
+    },
+    default=1,
+    action=function(val)
+      UI.screen_dirty = true
+      UI.arc_dirty = true
+    end
+  }
+  arcify:register("shuffle_basis")
   params:add {
     type="control",
     id="swing_amount",
@@ -325,6 +347,9 @@ function Sequencer:tick()
         local random_byte = math.random(0, 255)
         self.part_perturbations[track] = math.floor(random_byte * chaos / 256)
       end
+      -- also, reset shuffle vars
+      self._trip_map_index = params:get("shuffle_basis") - 1
+      self._ppqn_error = 0
     end
 
     MidiOut:turn_off_active_notes()
@@ -371,15 +396,7 @@ function Sequencer:tick()
     if previous_playpos ~= -1 or self.playpos ~= -1 then
       UI.grid_dirty = true
     end
-    -- Figure out how many ticks to wait for the next beat, based on swing
-    local is_even_side_swing = self:_is_even_side_swing()
-    if is_even_side_swing == nil then
-      self.ticks_to_next = ppqn
-    elseif is_even_side_swing then
-      self.ticks_to_next = self.even_ppqn
-    else
-      self.ticks_to_next = self.odd_ppqn
-    end
+    self.ticks_to_next = self:_get_ticks_to_next()
     UI.screen_dirty = true
   end
   self.ticks_to_next = self.ticks_to_next - 1
@@ -411,6 +428,48 @@ function Sequencer:_is_even_side_swing()
     return nil
   end
   return playpos % 2 == 0
+end
+
+-- TODO: more trip_maps for more feels
+local trip_map = {
+  {2/7, 2/7, 2/7, 1/7}, -- 7-tuple
+  {2/9, 3/9, 2/9, 2/9}, -- 9-tuple
+  {1/5, 2/5, 1/5, 1/5}, -- 5-tuple
+  {1/6, 3/6, 1/6, 1/6}, -- 6-tuple
+  {1/8, 4/8, 2/8, 1/8}, -- 8-tuple with gap
+  {1/9, 5/9, 2/9, 1/9}, -- 9-tuple with bigger gap
+}
+
+function Sequencer:_get_ticks_to_next()
+  local pattern_length = self:get_pattern_length()
+  local grid_resolution = self:_grid_resolution()
+  local is_four_four = (pattern_length / grid_resolution) == math.floor(pattern_length / grid_resolution)
+  local is_simple_swing = self._trip_map_index == 0
+  if is_four_four and not is_simple_swing then
+    local playpos_per_trip_map_cell = grid_resolution / 16
+    local playpos_mod = self.playpos % (grid_resolution / 4)
+    local trip_map_beat_index_min = math.floor(playpos_mod / playpos_per_trip_map_cell) + 1
+    local trip_map_beat_index_max = math.max(trip_map_beat_index_min, math.floor((playpos_mod + 1) / playpos_per_trip_map_cell))
+    local multiplier = 0
+    for trip_map_beat_index=trip_map_beat_index_min,trip_map_beat_index_max do
+      multiplier = multiplier + trip_map[self._trip_map_index][trip_map_beat_index]
+    end
+    multiplier = multiplier / (trip_map_beat_index_max - trip_map_beat_index_min + 1)
+    local exact_ppqn = 4 * ppqn * multiplier
+    local rounded_ppqn = util.round(exact_ppqn + self._ppqn_error)
+    self._ppqn_error = exact_ppqn + self._ppqn_error - rounded_ppqn
+    return rounded_ppqn
+  end
+
+  -- Figure out how many ticks to wait for the next beat, based on swing
+  local is_even_side_swing = self:_is_even_side_swing()
+  if is_even_side_swing == nil then
+    return ppqn
+  end
+  if is_even_side_swing then
+    return self.even_ppqn
+  end
+  return self.odd_ppqn
 end
 
 function Sequencer:update_swing(swing_amount)

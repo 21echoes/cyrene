@@ -7,7 +7,7 @@ local Label = include("lib/ui/util/label")
 local UIState = include('lib/ui/util/devices')
 
 local active_hi_level = 15
-local active_lo_level = 4
+local active_lo_level = 5
 local inactive_hi_level = 3
 local inactive_lo_level = 1
 
@@ -105,6 +105,7 @@ function MoreDensityUI:_update_active_section()
   self.track6_val_label.level = self._section == 1 and active_hi_level or inactive_hi_level
   self.track7_title_label.level = self._section == 1 and active_lo_level or inactive_lo_level
   self.track7_val_label.level = self._section == 1 and active_hi_level or inactive_hi_level
+  UIState.screen_dirty = true
 end
 
 return MoreDensityUI
