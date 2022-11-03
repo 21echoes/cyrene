@@ -44,7 +44,8 @@ function Sequencer:new()
     i.part_perturbations[track] = 0
   end
   i._clock_id = nil
-  i._trip_map_index = 0
+  i._shuffle_basis_index = 0
+  i._shuffle_feel_index = 1
   i._ppqn_error = 0
 
   return i
@@ -93,13 +94,13 @@ function Sequencer:add_params(arcify)
     id="shuffle_basis",
     name="Shuffle Basis",
     options={
-      "Straight (w/swing)",
-      "7-tuplets",
+      "Simple",
       "9-tuplets",
+      "7-tuplets",
       "5-tuplets",
       "6-tuplets",
-      "Weird 8-tuplets",
-      "Weird 9-tuplets"
+      "Weird 8s",
+      "Weird 9s"
     },
     default=1,
     action=function(val)
@@ -108,6 +109,23 @@ function Sequencer:add_params(arcify)
     end
   }
   arcify:register("shuffle_basis")
+  params:add {
+    type="option",
+    id="shuffle_feel",
+    name="Shuffle Feel",
+    options={
+      "Drunk",
+      "Smooth",
+      "Heavy",
+      "Clave",
+    },
+    default=1,
+    action=function(val)
+      UI.screen_dirty = true
+      UI.arc_dirty = true
+    end
+  }
+  arcify:register("shuffle_feel")
   params:add {
     type="control",
     id="swing_amount",
@@ -348,7 +366,8 @@ function Sequencer:tick()
         self.part_perturbations[track] = math.floor(random_byte * chaos / 256)
       end
       -- also, reset shuffle vars
-      self._trip_map_index = params:get("shuffle_basis") - 1
+      self._shuffle_basis_index = params:get("shuffle_basis") - 1
+      self._shuffle_feel_index = params:get("shuffle_feel")
       self._ppqn_error = 0
     end
 
@@ -430,31 +449,61 @@ function Sequencer:_is_even_side_swing()
   return playpos % 2 == 0
 end
 
--- TODO: more trip_maps for more feels
-local trip_map = {
-  {2/7, 2/7, 2/7, 1/7}, -- 7-tuple
-  {2/9, 3/9, 2/9, 2/9}, -- 9-tuple
-  {1/5, 2/5, 1/5, 1/5}, -- 5-tuple
-  {1/6, 3/6, 1/6, 1/6}, -- 6-tuple
-  {1/8, 4/8, 2/8, 1/8}, -- 8-tuple with gap
-  {1/9, 5/9, 2/9, 1/9}, -- 9-tuple with bigger gap
+local drunk_map = {
+  {2/9, 3/9, 2/9, 2/9, 2/9, 3/9, 2/9, 2/9},
+  {2/7, 2/7, 2/7, 1/7, 2/7, 2/7, 2/7, 1/7},
+  {1/5, 2/5, 1/5, 1/5, 1/5, 2/5, 1/5, 1/5},
+  {1/6, 3/6, 1/6, 1/6, 1/6, 3/6, 1/6, 1/6},
+  {1/8, 4/8, 2/8, 1/8, 1/8, 4/8, 2/8, 1/8},
+  {1/9, 5/9, 2/9, 1/9, 1/9, 5/9, 2/9, 1/9},
+}
+local smooth_map = {
+  {5/18, 5/18, 4/18, 4/18, 5/18, 5/18, 4/18, 4/18},
+  {4/14, 4/14, 3/14, 3/14, 4/14, 4/14, 3/14, 3/14},
+  {3/10, 3/10, 2/10, 2/10, 3/10, 3/10, 2/10, 2/10},
+  {2/6, 2/6, 1/6, 1/6, 2/6, 2/6, 1/6, 1/6},
+  {5/16, 5/16, 3/16, 3/16, 5/16, 5/16, 3/16, 3/16},
+  {6/18, 7/18, 3/18, 2/18, 6/18, 7/18, 3/18, 2/18},
+}
+local heavy_map = {
+  {4/9, 2/9, 2/9, 1/9, 4/9, 2/9, 2/9, 1/9},
+  {3/7, 1/7, 2/7, 1/7, 3/7, 1/7, 2/7, 1/7},
+  {2/5, 1/5, 1/5, 1/5, 2/5, 1/5, 1/5, 1/5},
+  {3/6, 1/6, 1/6, 1/6, 3/6, 1/6, 1/6, 1/6},
+  {4/8, 1/8, 2/8, 1/8, 4/8, 1/8, 2/8, 1/8},
+  {5/9, 1/9, 2/9, 1/9, 5/9, 1/9, 2/9, 1/9},
+}
+local clave_map = {
+  {2/9, 3/9, 2/9, 2/9, 3/9, 2/9, 2/9, 2/9},
+  {2/7, 2/7, 1/7, 2/7, 2/7, 1/7, 2/7, 2/7},
+  {1/5, 2/5, 1/5, 1/5, 2/5, 1/5, 1/5, 1/5},
+  {3/12, 4/12, 2/12, 3/12, 4/12, 2/12, 3/12, 3/12},
+  {3/16, 6/16, 3/16, 4/16, 5/16, 3/16, 4/16, 4/16},
+  {4/18, 7/18, 3/18, 4/18, 7/18, 2/18, 5/18, 4/18},
+}
+local shuffle_feels = {
+  drunk_map,
+  smooth_map,
+  heavy_map,
+  clave_map
 }
 
 function Sequencer:_get_ticks_to_next()
   local pattern_length = self:get_pattern_length()
   local grid_resolution = self:_grid_resolution()
   local is_four_four = (pattern_length / grid_resolution) == math.floor(pattern_length / grid_resolution)
-  local is_simple_swing = self._trip_map_index == 0
+  local is_simple_swing = self._shuffle_basis_index == 0
   if is_four_four and not is_simple_swing then
-    local playpos_per_trip_map_cell = grid_resolution / 16
-    local playpos_mod = self.playpos % (grid_resolution / 4)
-    local trip_map_beat_index_min = math.floor(playpos_mod / playpos_per_trip_map_cell) + 1
-    local trip_map_beat_index_max = math.max(trip_map_beat_index_min, math.floor((playpos_mod + 1) / playpos_per_trip_map_cell))
+    local playpos_per_shuffle_cell = grid_resolution / 16
+    local playpos_mod = self.playpos % (grid_resolution / 2)
+    local shuffle_beat_index_min = math.floor(playpos_mod / playpos_per_shuffle_cell) + 1
+    local shuffle_beat_index_max = math.max(shuffle_beat_index_min, math.floor((playpos_mod + 1) / playpos_per_shuffle_cell))
+    local shuffle_map = shuffle_feels[self._shuffle_feel_index]
     local multiplier = 0
-    for trip_map_beat_index=trip_map_beat_index_min,trip_map_beat_index_max do
-      multiplier = multiplier + trip_map[self._trip_map_index][trip_map_beat_index]
+    for shuffle_beat_index=shuffle_beat_index_min,shuffle_beat_index_max do
+      multiplier = multiplier + shuffle_map[self._shuffle_basis_index][shuffle_beat_index]
     end
-    multiplier = multiplier / (trip_map_beat_index_max - trip_map_beat_index_min + 1)
+    multiplier = multiplier / (shuffle_beat_index_max - shuffle_beat_index_min + 1)
     local exact_ppqn = 4 * ppqn * multiplier
     local rounded_ppqn = util.round(exact_ppqn + self._ppqn_error)
     self._ppqn_error = exact_ppqn + self._ppqn_error - rounded_ppqn

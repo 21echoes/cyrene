@@ -82,7 +82,7 @@ local UI = require 'ui'
 local Sequencer = include('lib/sequencer')
 local MidiOut = include('lib/midi_out')
 local PlaybackUI = include('lib/ui/playback')
-local DetailsUI = include('lib/ui/details')
+local SwingUI = include('lib/ui/swing')
 local PatternAndDensityUI = include('lib/ui/pattern_and_density')
 local MoreDensityUI = include('lib/ui/more_density')
 local EuclideanUI = include('lib/ui/euclidean')
@@ -226,7 +226,7 @@ function init()
   sequencer = Sequencer:new()
   pages_table = {
     PlaybackUI:new(),
-    DetailsUI:new(),
+    SwingUI:new(),
     PatternAndDensityUI:new(),
     MoreDensityUI:new(),
     EuclideanUI:new(sequencer),
