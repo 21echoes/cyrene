@@ -8,7 +8,7 @@ local TapTempo = include("lib/ui/util/tap_tempo")
 local MidiOut = include('lib/midi_out')
 
 local active_hi_level = 15
-local active_lo_level = 5
+local active_lo_level = 6
 local inactive_hi_level = 3
 local inactive_lo_level = 1
 local CLICK_DURATION = 0.7

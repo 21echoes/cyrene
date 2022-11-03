@@ -8,7 +8,7 @@ local HEIGHT = 8
 local CLICK_DURATION = 0.7
 
 local TRIG_LEVEL = 15
-local MIN_TRIG_LEVEL = 3
+local MIN_TRIG_LEVEL = 2
 local PLAYPOS_LEVEL = 7
 local ACTIVE_ALT_LEVEL = 15
 local INACTIVE_ALT_LEVEL = 4
@@ -171,7 +171,7 @@ function Trigs.refresh_grid_button(x, y, sequencer)
     end
   else
     -- Show the likelihood of a trigger firing via its brightness (down to some minimum brightness)
-    local grid_trig_level = math.ceil((trig_level / 255) * (TRIG_LEVEL - MIN_TRIG_LEVEL)) + MIN_TRIG_LEVEL
+    local grid_trig_level = math.ceil(util.linexp(0, 255, MIN_TRIG_LEVEL, TRIG_LEVEL, trig_level))
     -- Fade out the columns beyond the end of the pattern
     local is_beyond_pattern_end = trig_x > sequencer:get_pattern_length()
     grid_trig_level = is_beyond_pattern_end and math.ceil(grid_trig_level * 0.33) or grid_trig_level

@@ -7,7 +7,7 @@ local Label = include("lib/ui/util/label")
 local UIState = include('lib/ui/util/devices')
 
 local active_hi_level = 15
-local active_lo_level = 5
+local active_lo_level = 6
 local inactive_hi_level = 3
 local inactive_lo_level = 1
 
