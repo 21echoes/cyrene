@@ -104,6 +104,7 @@ function Sequencer:add_params(arcify)
     },
     default=1,
     action=function(val)
+      self:update_swing()
       UI.screen_dirty = true
       UI.arc_dirty = true
     end
@@ -132,7 +133,7 @@ function Sequencer:add_params(arcify)
     name="Swing Amount",
     controlspec=swing_amount_spec,
     action=function(val)
-      self:update_swing(val)
+      self:update_swing()
       UI.screen_dirty = true
       UI.arc_dirty = true
     end
@@ -491,11 +492,14 @@ local shuffle_feels = {
 function Sequencer:_get_ticks_to_next()
   local pattern_length = self:get_pattern_length()
   local grid_resolution = self:_grid_resolution()
-  local is_four_four = (pattern_length / grid_resolution) == math.floor(pattern_length / grid_resolution)
   local is_simple_swing = self._shuffle_basis_index == 0
-  if is_four_four and not is_simple_swing then
+  local num_beats = (pattern_length / grid_resolution) * 4
+  local num_fallback_to_simple = (num_beats - math.floor(num_beats)) * 4
+  local use_shuffle = self.playpos < pattern_length - num_fallback_to_simple
+  if not is_simple_swing and use_shuffle then
     local playpos_per_shuffle_cell = grid_resolution / 16
-    local playpos_mod = self.playpos % (grid_resolution / 2)
+    local playpos_per_shuffle_row = 8
+    local playpos_mod = self.playpos % (playpos_per_shuffle_cell * playpos_per_shuffle_row)
     local shuffle_beat_index_min = math.floor(playpos_mod / playpos_per_shuffle_cell) + 1
     local shuffle_beat_index_max = math.max(shuffle_beat_index_min, math.floor((playpos_mod + 1) / playpos_per_shuffle_cell))
     local shuffle_map = shuffle_feels[self._shuffle_feel_index]
@@ -521,7 +525,23 @@ function Sequencer:_get_ticks_to_next()
   return self.odd_ppqn
 end
 
-function Sequencer:update_swing(swing_amount)
+local basis_to_swing_amt = {
+  0,
+  100 / (ppqn*0.75) * (((2 * ppqn) * (5/9)) - ppqn),
+  100 / (ppqn*0.75) * (((2 * ppqn) * (4/7)) - ppqn),
+  100 / (ppqn*0.75) * (((2 * ppqn) * (3/5)) - ppqn),
+  100 / (ppqn*0.75) * (((2 * ppqn) * (4/6)) - ppqn),
+  100 / (ppqn*0.75) * (((2 * ppqn) * (5/8)) - ppqn),
+  100 / (ppqn*0.75) * (((2 * ppqn) * (6/9)) - ppqn),
+}
+
+function Sequencer:update_swing()
+  local swing_amount
+  if params:get("shuffle_basis") == 1 then
+    swing_amount = params:get('swing_amount')
+  else
+    swing_amount = basis_to_swing_amt[params:get('shuffle_basis')]
+  end
   local swing_ppqn = ppqn*swing_amount/100*0.75
   self.even_ppqn = util.round(ppqn+swing_ppqn)
   self.odd_ppqn = (2 * ppqn) - self.even_ppqn
