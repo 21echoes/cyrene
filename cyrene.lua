@@ -72,8 +72,8 @@
 -- and Step, by @jah
 --
 --
--- v1.7.0 @21echoes
-local current_version = "1.7.0"
+-- v1.7.1 @21echoes
+local current_version = "1.7.1"
 
 engine.name = 'Ack'
 
@@ -228,9 +228,6 @@ function init()
 
   init_params()
   init_ui()
-
-  sequencer:initialize()
-  sequencer:start()
   MidiOut:start_at_beginning()
   CrowIO:initialize()
 
@@ -243,6 +240,9 @@ function init()
   params:bang()
 
   _set_encoder_sensitivities()
+
+  sequencer:initialize()
+  sequencer:start()
 end
 
 function cleanup()

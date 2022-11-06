@@ -194,6 +194,14 @@ function Sequencer:load_patterns()
       end
     end
     io.close(fd)
+
+    -- set up our local state in a way that indicates we don't need to reset the grid
+    -- (see set_grids_xy)
+    self.grids_x = params:get("grids_pattern_x")
+    self.grids_y = params:get("grids_pattern_y")
+    self._euclidean_kick = params:get(EuclideanUI.param_id_prefix_for_track(1).."_euclidean_enabled") == 2
+    self._euclidean_snare = params:get(EuclideanUI.param_id_prefix_for_track(2).."_euclidean_enabled") == 2
+    self._euclidean_hat = params:get(EuclideanUI.param_id_prefix_for_track(3).."_euclidean_enabled") == 2
   end
 end
 
