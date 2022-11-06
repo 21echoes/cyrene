@@ -228,9 +228,6 @@ function init()
 
   init_params()
   init_ui()
-
-  sequencer:initialize()
-  sequencer:start()
   MidiOut:start_at_beginning()
   CrowIO:initialize()
 
@@ -243,6 +240,9 @@ function init()
   params:bang()
 
   _set_encoder_sensitivities()
+
+  sequencer:initialize()
+  sequencer:start()
 end
 
 function cleanup()
