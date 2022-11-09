@@ -7,7 +7,7 @@ local Label = include("lib/ui/util/label")
 local UIState = include('lib/ui/util/devices')
 
 local active_hi_level = 15
-local active_lo_level = 4
+local active_lo_level = 6
 local inactive_hi_level = 3
 local inactive_lo_level = 1
 
@@ -100,7 +100,7 @@ end
 function PatternAndDensityUI:enc(n, delta, sequencer)
   if self._section == 0 then
     if n == 2 then
-        params:delta('grids_pattern_x', delta)
+      params:delta('grids_pattern_x', delta)
     elseif n == 3 then
       params:delta('grids_pattern_y', delta)
     end
@@ -158,6 +158,7 @@ function PatternAndDensityUI:_update_active_section()
   self.hat_val_label.level = self._section == 2 and active_hi_level or inactive_hi_level
   self.chaos_title_label.level = self._section == 2 and active_lo_level or inactive_lo_level
   self.chaos_val_label.level = self._section == 2 and active_hi_level or inactive_hi_level
+  UIState.screen_dirty = true
 end
 
 return PatternAndDensityUI

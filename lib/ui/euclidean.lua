@@ -11,7 +11,7 @@ local MAX_PATTERN_LENGTH = 32
 local NUM_TRACKS = 7
 
 local active_hi_level = 15
-local active_lo_level = 4
+local active_lo_level = 6
 local inactive_hi_level = 3
 local inactive_lo_level = 1
 local CLICK_DURATION = 0.7
@@ -216,6 +216,7 @@ function EuclideanUI:_update_label_levels()
       self.disabled_labels[track].level = not enabled and inactive_hi_level or 0
     end
   end
+  UIState.screen_dirty = true
 end
 
 function EuclideanUI:_recompute_cached_euclideans()

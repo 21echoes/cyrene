@@ -3,13 +3,18 @@
 -- E1 controls page
 --
 -- Landing page:
--- E2 controls tempo
--- E3 controls swing
--- K2+E2 controls volume
+-- E2 controls volume
+-- E3 controls tempo
 -- K2 stops playback
 -- K3 resumes playback
 -- K2 while stopped
 --  resets to beat 1
+--
+-- Swing page:
+-- K2 & K3 switch sections
+-- E2 & E3 change values
+-- (check README or wiki
+--  for more swing info)
 --
 -- Pattern & Density page:
 -- K2 & K3 switch sections
@@ -59,7 +64,7 @@
 -- are controled by which enc
 -- Defaults:
 -- E1: Tempo
--- E2: Swing
+-- E2: Swing percentage
 -- E3: Pattern X
 -- E4: Pattern Y
 --
@@ -70,10 +75,11 @@
 -- Adapted from Grids
 --   by Emilie Gillet
 -- and Step, by @jah
+-- and Playfair, by @tehn
 --
 --
--- v1.7.2 @21echoes
-local current_version = "1.7.2"
+-- v1.8.0 @21echoes
+local current_version = "1.8.0"
 
 engine.name = 'Ack'
 
@@ -81,7 +87,8 @@ local Ack = require 'ack/lib/ack'
 local UI = require 'ui'
 local Sequencer = include('lib/sequencer')
 local MidiOut = include('lib/midi_out')
-local DetailsUI = include('lib/ui/details')
+local PlaybackUI = include('lib/ui/playback')
+local SwingUI = include('lib/ui/swing')
 local PatternAndDensityUI = include('lib/ui/pattern_and_density')
 local MoreDensityUI = include('lib/ui/more_density')
 local EuclideanUI = include('lib/ui/euclidean')
@@ -110,9 +117,10 @@ local function init_params()
   }
   params:hide(params.lookup["cyrene_version"])
   sequencer:add_params(arcify)
-  -- Only the first 2 pages have any generic params
+  -- Only the first 3 pages have any generic params
   pages_table[1]:add_params(arcify)
   pages_table[2]:add_params(arcify)
+  pages_table[3]:add_params(arcify)
   for track=1,NUM_TRACKS do
     local group_name = "Track "..track
     if track == 1 then group_name = "Kick"
@@ -179,6 +187,9 @@ end
 
 local function init_60_fps_ui_refresh_metro()
   ui_refresh_metro = metro.init()
+  if ui_refresh_metro == nil then
+    print("unable to start ui refresh metro")
+  end
   ui_refresh_metro.event = UIState.refresh
   ui_refresh_metro.time = 1/60
   ui_refresh_metro:start()
@@ -220,7 +231,8 @@ function init()
 
   sequencer = Sequencer:new()
   pages_table = {
-    DetailsUI:new(),
+    PlaybackUI:new(),
+    SwingUI:new(),
     PatternAndDensityUI:new(),
     MoreDensityUI:new(),
     EuclideanUI:new(sequencer),
