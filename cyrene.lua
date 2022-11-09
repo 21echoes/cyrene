@@ -3,13 +3,18 @@
 -- E1 controls page
 --
 -- Landing page:
--- E2 controls tempo
--- E3 controls swing
--- K2+E2 controls volume
+-- E2 controls volume
+-- E3 controls tempo
 -- K2 stops playback
 -- K3 resumes playback
 -- K2 while stopped
 --  resets to beat 1
+--
+-- Swing page:
+-- K2 & K3 switch sections
+-- E2 & E3 change values
+-- (check README or wiki
+--  for more swing info)
 --
 -- Pattern & Density page:
 -- K2 & K3 switch sections
@@ -59,7 +64,7 @@
 -- are controled by which enc
 -- Defaults:
 -- E1: Tempo
--- E2: Swing
+-- E2: Swing percentage
 -- E3: Pattern X
 -- E4: Pattern Y
 --
@@ -70,6 +75,7 @@
 -- Adapted from Grids
 --   by Emilie Gillet
 -- and Step, by @jah
+-- and Playfair, by @tehn
 --
 --
 -- v1.7.2 @21echoes
