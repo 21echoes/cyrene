@@ -119,10 +119,14 @@ function Sequencer:initialize()
   self:load_patterns()
 end
 
-function Sequencer:start()
+function Sequencer:start(immediately)
   self.playing = true
   if self._clock_id ~= nil then
     clock.cancel(self._clock_id)
+  end
+  if immediately then
+    -- run the non-sync() innards of _clock_tick before running _clock_tick
+    self:tick()
   end
   self._clock_id = clock.run(self._clock_tick, self)
 end

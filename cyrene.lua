@@ -72,8 +72,8 @@
 -- and Step, by @jah
 --
 --
--- v1.7.1 @21echoes
-local current_version = "1.7.1"
+-- v1.7.2 @21echoes
+local current_version = "1.7.2"
 
 engine.name = 'Ack'
 
@@ -292,7 +292,7 @@ end
 
 function clock.transport.start()
   if sequencer then
-    sequencer:start()
+    sequencer:start(true)
   end
 end
 
