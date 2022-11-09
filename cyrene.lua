@@ -78,8 +78,8 @@
 -- and Playfair, by @tehn
 --
 --
--- v1.7.2 @21echoes
-local current_version = "1.7.2"
+-- v1.8.0 @21echoes
+local current_version = "1.8.0"
 
 engine.name = 'Ack'
 
