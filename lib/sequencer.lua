@@ -59,23 +59,57 @@ end
 
 function Sequencer:add_params(arcify)
   -- TODO: cy_-prefix everything?
-  -- TODO: don't register some more complicated params if is_mod (e.g. 'pattern')?
+
+  params:add_separator("Cyrene")
+  params:add {
+    id="cyrene_version",
+    name="Cyrene Version",
+    type="text",
+  }
+  params:hide(params.lookup["cyrene_version"])
+
   if arcify then
     arcify:register("clock_tempo")
     arcify:register("clock_source")
   end
+
   params:add {
-    type="number",
-    id="pattern",
-    name="Pattern",
-    min=1,
-    max=NUM_PATTERNS,
-    default=1,
-    action=function()
-      UI.grid_dirty = true
-    end
+    type="binary",
+    id="cyrene_play",
+    name="Play",
+    default=0,
+    behavior="toggle",
+    action=function(a)
+      if a > 0 then
+        self:_start()
+      else
+        self:_stop()
+      end
+    end,
   }
-  if arcify then arcify:register("pattern") end
+  params:add {
+    type="trigger",
+    id="cyrene_reset",
+    name="Reset",
+    action=function(a)
+      self:_move_to_start()
+    end,
+  }
+
+  if not self._is_mod then
+    params:add {
+      type="number",
+      id="pattern",
+      name="Pattern",
+      min=1,
+      max=NUM_PATTERNS,
+      default=1,
+      action=function()
+        UI.grid_dirty = true
+      end
+    }
+    if arcify then arcify:register("pattern") end
+  end
   params:add {
     type="number",
     id="pattern_length",
@@ -93,7 +127,8 @@ function Sequencer:add_params(arcify)
     default=3,
     action=function(val)
       if self.grids_x ~= nil and self.grids_y ~= nil then
-        self:set_grids_xy(params:get("pattern"), params:get("grids_pattern_x"), params:get("grids_pattern_y"), true)
+        local patternno = self:_get_pattern_number()
+        self:set_grids_xy(patternno, params:get("grids_pattern_x"), params:get("grids_pattern_y"), true)
       end
       self:_update_clock_sync_resolution()
     end
@@ -152,14 +187,17 @@ function Sequencer:add_params(arcify)
     end
   }
   if arcify then arcify:register("swing_amount") end
-  params:add {
-    type="option",
-    id="cut_quant",
-    name="Quantize Cutting",
-    options={"No", "Yes"},
-    default=1
-  }
-  if arcify then arcify:register("cut_quant") end
+  if not self._is_mod then
+    params:add {
+      type="option",
+      id="cut_quant",
+      name="Quantize Cutting",
+      options={"No", "Yes"},
+      default=1
+    }
+    if arcify then arcify:register("cut_quant") end
+  end
+
   local default_tempo_action = params:lookup_param("clock_tempo").action
   params:set_action("clock_tempo", function(val)
     default_tempo_action(val)
@@ -171,6 +209,7 @@ function Sequencer:add_params(arcify)
     UI.screen_dirty = true
     default_clock_source_action(val)
   end)
+
   params:add {
     type="number",
     id="grids_pattern_x",
@@ -225,79 +264,81 @@ function Sequencer:add_params_for_track(track, arcify, pages)
   }
   if arcify then arcify:register(density_param_id) end
 
-  local eucl_mode_param_id = track.."_euclidean_enabled"
-  params:add {
-    type="option",
-    id=eucl_mode_param_id,
-    name=track..": Euclidean Mode",
-    options={"Off", "On"},
-    default=1,
-    action=function(value)
-      self:recompute_euclidean_for_track(track)
-      UI.params_dirty = true
-      UI.screen_dirty = true
-    end
-  }
-  if arcify then arcify:register(eucl_mode_param_id) end
-
-  local eucl_length_param_id = track.."_euclidean_length"
-  local eucl_trigs_param_id = track.."_euclidean_trigs"
-  params:add {
-    type="number",
-    id=eucl_length_param_id,
-    name=track..": Euclidean Length",
-    min=1,
-    max=MAX_PATTERN_LENGTH,
-    default=8,
-    action=function(value)
-      if value < params:get(eucl_trigs_param_id) then
-        params:set(eucl_trigs_param_id, value)
+  -- TODO: maybe euclid is fine for the mod? Why not?
+  if not self._is_mod then
+    local eucl_mode_param_id = track.."_euclidean_enabled"
+    params:add {
+      type="option",
+      id=eucl_mode_param_id,
+      name=track..": Euclidean Mode",
+      options={"Off", "On"},
+      default=1,
+      action=function(value)
+        self:recompute_euclidean_for_track(track)
+        UI.params_dirty = true
+        UI.screen_dirty = true
       end
-      self:recompute_euclidean_for_track(track)
-      UI.params_dirty = true
-      UI.screen_dirty = true
-    end
-  }
-  if arcify then arcify:register(eucl_length_param_id) end
-  params:add {
-    type="number",
-    id=eucl_trigs_param_id,
-    name=track..": Euclidean Count",
-    min=0,
-    max=MAX_PATTERN_LENGTH,
-    default=0,
-    action=function(value)
-      local eucl_length = params:get(eucl_length_param_id)
-      if value > eucl_length then
-        params:set(eucl_trigs_param_id, eucl_length)
-        value = eucl_length
+    }
+    if arcify then arcify:register(eucl_mode_param_id) end
+    local eucl_length_param_id = track.."_euclidean_length"
+    local eucl_trigs_param_id = track.."_euclidean_trigs"
+    params:add {
+      type="number",
+      id=eucl_length_param_id,
+      name=track..": Euclidean Length",
+      min=1,
+      max=MAX_PATTERN_LENGTH,
+      default=8,
+      action=function(value)
+        if value < params:get(eucl_trigs_param_id) then
+          params:set(eucl_trigs_param_id, value)
+        end
+        self:recompute_euclidean_for_track(track)
+        UI.params_dirty = true
+        UI.screen_dirty = true
       end
-      self:recompute_euclidean_for_track(track)
-      UI.params_dirty = true
-      UI.screen_dirty = true
-    end
-  }
-  if arcify then arcify:register(eucl_trigs_param_id) end
-  local eucl_rotation_param_id = track.."_euclidean_rotation"
-  params:add {
-    type="number",
-    id=eucl_rotation_param_id,
-    name=track..": Euclidean Rotate",
-    min=0,
-    max=MAX_PATTERN_LENGTH - 1,
-    default=0,
-    action=function(value)
-      local eucl_length = params:get(eucl_length_param_id)
-      if value > eucl_length - 1 then
-        params:set(eucl_rotation_param_id, eucl_length - 1)
-        value = eucl_length - 1
+    }
+    if arcify then arcify:register(eucl_length_param_id) end
+    params:add {
+      type="number",
+      id=eucl_trigs_param_id,
+      name=track..": Euclidean Count",
+      min=0,
+      max=MAX_PATTERN_LENGTH,
+      default=0,
+      action=function(value)
+        local eucl_length = params:get(eucl_length_param_id)
+        if value > eucl_length then
+          params:set(eucl_trigs_param_id, eucl_length)
+          value = eucl_length
+        end
+        self:recompute_euclidean_for_track(track)
+        UI.params_dirty = true
+        UI.screen_dirty = true
       end
-      self:recompute_euclidean_for_track(track)
-      UI.params_dirty = true
-      UI.screen_dirty = true
-    end
-  }
-  if arcify then arcify:register(eucl_rotation_param_id) end
+    }
+    if arcify then arcify:register(eucl_trigs_param_id) end
+    local eucl_rotation_param_id = track.."_euclidean_rotation"
+    params:add {
+      type="number",
+      id=eucl_rotation_param_id,
+      name=track..": Euclidean Rotate",
+      min=0,
+      max=MAX_PATTERN_LENGTH - 1,
+      default=0,
+      action=function(value)
+        local eucl_length = params:get(eucl_length_param_id)
+        if value > eucl_length - 1 then
+          params:set(eucl_rotation_param_id, eucl_length - 1)
+          value = eucl_length - 1
+        end
+        self:recompute_euclidean_for_track(track)
+        UI.params_dirty = true
+        UI.screen_dirty = true
+      end
+    }
+    if arcify then arcify:register(eucl_rotation_param_id) end
+  end
 end
 
 function Sequencer:initialize()
@@ -305,7 +346,8 @@ function Sequencer:initialize()
   self:load_patterns()
 end
 
-function Sequencer:start(immediately)
+function Sequencer:_start(immediately)
+  if self.playing then return end
   self.playing = true
   if self._clock_id ~= nil then
     clock.cancel(self._clock_id)
@@ -317,12 +359,13 @@ function Sequencer:start(immediately)
   self._clock_id = clock.run(self._clock_tick, self)
 end
 
-function Sequencer:move_to_start()
+function Sequencer:_move_to_start()
   self.playpos = -1
   self.queued_playpos = 0
 end
 
-function Sequencer:stop()
+function Sequencer:_stop()
+  if not self.playing then return end
   self.playing = false
   if self._midi_enabled then
     MidiOut:turn_off_active_notes()
@@ -351,6 +394,13 @@ function Sequencer:_init_trigs()
       end
     end
   end
+end
+
+function Sequencer:_get_pattern_number()
+  if self._is_mod then
+    return 1
+  end
+  return params:get("pattern")
 end
 
 function Sequencer:get_pattern_length()
@@ -466,7 +516,7 @@ function Sequencer:recompute_euclidean_for_track(track)
   local length = params:get(param_id_prefix.."_euclidean_length")
   local rotation = params:get(param_id_prefix.."_euclidean_rotation")
   local pattern = Euclidean.get_pattern(trigs, length, rotation)
-  local patternno = params:get("pattern")
+  local patternno = self:_get_pattern_number()
   local master_pattern_length = self:get_pattern_length()
   for step=1,master_pattern_length do
     -- Loop the euclidean pattern
@@ -483,7 +533,11 @@ function Sequencer:_clock_tick()
 end
 
 function Sequencer:tick()
-  if self.queued_playpos and params:get("cut_quant") == 1 then
+  local cut_quant = false
+  if not self._is_mod then
+    cut_quant = params:get("cut_quant") == 1
+  end
+  if self.queued_playpos and cut_quant then
     self.ticks_to_next = 0
     self._raw_ticks = 0
   end
@@ -502,8 +556,7 @@ function Sequencer:tick()
   self._raw_ticks = self._raw_ticks - 1
 
   if (not self.ticks_to_next) or self.ticks_to_next == 0 then
-    -- TODO: abstract to self:get_pattern()
-    local patternno = params:get("pattern")
+    local patternno = self:_get_pattern_number()
     -- Update the triggers to match the selected MI-Grids X and Y parameters
     self:set_grids_xy(patternno, params:get("grids_pattern_x"), params:get("grids_pattern_y"))
     -- If there's a queued cut, set it and forget it

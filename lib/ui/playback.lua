@@ -63,10 +63,10 @@ function PlaybackUI:key(n, z, sequencer)
 
   if n == 2 then
     if sequencer.playing == false then
-      sequencer:move_to_start()
+      params:set("cyrene_reset", 1)
       UIState.grid_dirty = true
     else
-      sequencer:stop()
+      params:set("cyrene_play", 0)
       MidiOut:stop()
     end
   elseif n == 3 and z == 1 then
@@ -76,7 +76,7 @@ function PlaybackUI:key(n, z, sequencer)
       else
         MidiOut:continue()
       end
-      sequencer:start()
+      params:set("cyrene_play", 1)
     end
   end
   UIState.screen_dirty = true

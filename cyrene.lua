@@ -109,13 +109,6 @@ local arc_device = arc.connect()
 local arcify = Arcify.new(arc_device, false)
 
 local function init_params()
-  params:add_separator()
-  params:add {
-    id="cyrene_version",
-    name="Cyrene Version",
-    type="text",
-  }
-  params:hide(params.lookup["cyrene_version"])
   sequencer:add_params(arcify)
   for track=1,sequencer.num_tracks do
     local group_name = "Track "..track
@@ -248,7 +241,7 @@ function init()
   _set_encoder_sensitivities()
 
   sequencer:initialize()
-  sequencer:start()
+  params:set("cyrene_play", 1)
 end
 
 function cleanup()
@@ -299,13 +292,17 @@ end
 
 function clock.transport.start()
   if sequencer then
-    sequencer:start(true)
+    sequencer:_start(true)
+    -- this is a no-op, but keeps the param in sync.
+    -- (We need to call :_start directly above
+    -- so we can pass immediately=true)
+    params:set("cyrene_play", 1, true)
   end
 end
 
 function clock.transport.stop()
   if sequencer then
-    sequencer:stop()
+    params:set("cyrene_play", 0)
   end
 end
 
