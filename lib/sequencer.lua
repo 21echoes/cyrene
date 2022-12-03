@@ -22,16 +22,17 @@ local MIN_ENGINE_VOL = -40
 
 local Sequencer = {}
 
-function Sequencer:new(action, num_tracks)
+function Sequencer:new(action, num_tracks, is_mod)
   i = {}
   setmetatable(i, self)
   self.__index = self
 
+  i._is_mod = is_mod or false
   i.trigs = {}
   i:_init_trigs()
   i.playing = false
   i.playpos = -1
-  i._action = action or i.default_action
+  i._action = action
   i.num_tracks = num_tracks or NUM_TRACKS
   i.ticks_to_next = nil
   i._raw_ticks = nil
@@ -49,13 +50,16 @@ function Sequencer:new(action, num_tracks)
   i._shuffle_basis_index = 0
   i._shuffle_feel_index = 1
   i._ppqn_error = 0
+  i._engine_enabled = not is_mod
+  i._midi_enabled = not is_mod
+  i._crow_enabled = not is_mod
 
   return i
 end
 
 function Sequencer:add_params(arcify)
   -- TODO: cy_-prefix everything?
-  -- TODO: don't register some more complicated params if is_mod (e.g. 'pattern')
+  -- TODO: don't register some more complicated params if is_mod (e.g. 'pattern')?
   if arcify then
     arcify:register("clock_tempo")
     arcify:register("clock_source")
@@ -320,7 +324,9 @@ end
 
 function Sequencer:stop()
   self.playing = false
-  MidiOut:turn_off_active_notes()
+  if self._midi_enabled then
+    MidiOut:turn_off_active_notes()
+  end
   if self._clock_id ~= nil then
     clock.cancel(self._clock_id)
     self._clock_id = nil
@@ -356,6 +362,7 @@ function Sequencer:set_pattern_length(pattern_length)
 end
 
 function Sequencer:save_patterns()
+  if self._is_mod then return end
   local fd=io.open(norns.state.data .. PATTERN_FILE,"w+")
   io.output(fd)
   for patternno=1,NUM_PATTERNS do
@@ -369,6 +376,7 @@ function Sequencer:save_patterns()
 end
 
 function Sequencer:load_patterns()
+  if self._is_mod then return end
   local fd=io.open(norns.state.data .. PATTERN_FILE,"r")
   if fd then
     io.input(fd)
@@ -474,21 +482,6 @@ function Sequencer:_clock_tick()
   end
 end
 
-function Sequencer:default_action(chan, trig, velocity)
-  if MidiOut:is_midi_out_enabled() then
-    MidiOut:note_on(chan, trig * math.floor(velocity / 2))
-  end
-
-  if CrowIO:is_crow_out_enabled() then
-    for crow_out=1,CrowIO:num_outs() do
-      local crow_chan = params:get("crow_out_"..crow_out.."_track")
-      if crow_chan == chan and trig then
-        CrowIO:gate_on(crow_out)
-      end
-    end
-  end
-end
-
 function Sequencer:tick()
   if self.queued_playpos and params:get("cut_quant") == 1 then
     self.ticks_to_next = 0
@@ -498,8 +491,10 @@ function Sequencer:tick()
   -- Also track the swing-independent number of ticks for midi clock out messages
   local grid_resolution = self:_grid_resolution()
   local midi_ppqn_divisor = grid_resolution/4
-  if (not self._raw_ticks) or (self._raw_ticks % midi_ppqn_divisor) == 0 then
-    MidiOut:send_ppqn_pulse()
+  if self._midi_enabled then
+    if (not self._raw_ticks) or (self._raw_ticks % midi_ppqn_divisor) == 0 then
+      MidiOut:send_ppqn_pulse()
+    end
   end
   if (not self._raw_ticks) or (self._raw_ticks == 0) then
     self._raw_ticks = ppqn
@@ -507,6 +502,7 @@ function Sequencer:tick()
   self._raw_ticks = self._raw_ticks - 1
 
   if (not self.ticks_to_next) or self.ticks_to_next == 0 then
+    -- TODO: abstract to self:get_pattern()
     local patternno = params:get("pattern")
     -- Update the triggers to match the selected MI-Grids X and Y parameters
     self:set_grids_xy(patternno, params:get("grids_pattern_x"), params:get("grids_pattern_y"))
@@ -532,7 +528,9 @@ function Sequencer:tick()
       self._ppqn_error = 0
     end
 
-    MidiOut:turn_off_active_notes()
+    if self._midi_enabled then
+      MidiOut:turn_off_active_notes()
+    end
     local ts = {}
     local velocities = {}
     for y=1,self.num_tracks do
@@ -547,22 +545,45 @@ function Sequencer:tick()
       if trig_level > threshold then
         ts[y] = 1
         velocities[y] = trig_level
-        -- Compute the sample volume. Max out at 192
-        local max_vol = params:get(y.."_vol")
-        local sample_velocity = velocities[y] > 192 and 192 or velocities[y]
-        local engine_vol = MIN_ENGINE_VOL + ((max_vol - MIN_ENGINE_VOL) * (sample_velocity/192))
-        engine.volume(y-1, engine_vol)
+        if self._engine_enabled then
+          -- Compute the sample volume. Max out at 192
+          local max_vol = params:get(y.."_vol")
+          local sample_velocity = velocities[y] > 192 and 192 or velocities[y]
+          local engine_vol = MIN_ENGINE_VOL + ((max_vol - MIN_ENGINE_VOL) * (sample_velocity/192))
+          engine.volume(y-1, engine_vol)
+        end
       else
         ts[y] = 0
         velocities[y] = 0
       end
     end
-    if self._use_engine then
+    -- Technically this should go inside
+    if self._engine_enabled then
       -- TODO: don't send trigs for tracks beyond self.num_tracks
+      -- (doesn't matter until non-mod usage can have a diff number of tracks)
       engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], 0)
     end
-    for y=1,self.num_tracks do
-      self._action(y, ts[y], velocities[y])
+    if self._midi_enabled then
+      if MidiOut:is_midi_out_enabled() then
+        for y=1,self.num_tracks do
+          MidiOut:note_on(y, ts[y] * math.floor(velocities[y] / 2))
+        end
+      end
+    end
+    if self._crow_enabled then
+      if CrowIO:is_crow_out_enabled() then
+        for crow_out=1,CrowIO:num_outs() do
+          local y = params:get("crow_out_"..crow_out.."_track")
+          if ts[y] == 1 then
+            CrowIO:gate_on(crow_out)
+          end
+        end
+      end
+    end
+    if self._action then
+      for y=1,self.num_tracks do
+        self._action(self, y, ts[y], velocities[y])
+      end
     end
 
     if previous_playpos ~= -1 or self.playpos ~= -1 then
