@@ -22,7 +22,7 @@ local MIN_ENGINE_VOL = -40
 
 local Sequencer = {}
 
-function Sequencer:new()
+function Sequencer:new(action, num_tracks)
   i = {}
   setmetatable(i, self)
   self.__index = self
@@ -31,6 +31,8 @@ function Sequencer:new()
   i:_init_trigs()
   i.playing = false
   i.playpos = -1
+  i._action = action or i.default_action
+  i.num_tracks = num_tracks or NUM_TRACKS
   i.ticks_to_next = nil
   i._raw_ticks = nil
   i.queued_playpos = nil
@@ -39,9 +41,9 @@ function Sequencer:new()
   i._euclidean_kick = nil
   i._euclidean_snare = nil
   i._euclidean_hat = nil
-  i.part_perturbations = {}
+  i._part_perturbations = {}
   for track=1,NUM_TRACKS do
-    i.part_perturbations[track] = 0
+    i._part_perturbations[track] = 0
   end
   i._clock_id = nil
   i._shuffle_basis_index = 0
@@ -329,6 +331,21 @@ function Sequencer:_clock_tick()
   end
 end
 
+function Sequencer:default_action(chan, trig, velocity)
+  if MidiOut:is_midi_out_enabled() then
+    MidiOut:note_on(chan, trig * math.floor(velocity / 2))
+  end
+
+  if CrowIO:is_crow_out_enabled() then
+    for crow_out=1,CrowIO:num_outs() do
+      local crow_chan = params:get("crow_out_"..crow_out.."_track")
+      if crow_chan == chan and trig then
+        CrowIO:gate_on(crow_out)
+      end
+    end
+  end
+end
+
 function Sequencer:tick()
   if self.queued_playpos and params:get("cut_quant") == 1 then
     self.ticks_to_next = 0
@@ -361,10 +378,10 @@ function Sequencer:tick()
     end
     if self.playpos == 0 then
       -- At the start of the pattern, figure out how much to bump up our trigger level by based on the chaos parameter
-      for track=1,NUM_TRACKS do
+      for track=1,self.num_tracks do
         local chaos = math.floor(params:get("pattern_chaos") * 255 / 100 / 4)
         local random_byte = math.random(0, 255)
-        self.part_perturbations[track] = math.floor(random_byte * chaos / 256)
+        self._part_perturbations[track] = math.floor(random_byte * chaos / 256)
       end
       -- also, reset shuffle vars
       self._shuffle_basis_index = params:get("shuffle_basis") - 1
@@ -375,12 +392,12 @@ function Sequencer:tick()
     MidiOut:turn_off_active_notes()
     local ts = {}
     local velocities = {}
-    for y=1,7 do
+    for y=1,self.num_tracks do
       local trig_level = self:trig_level(patternno, self.playpos+1, y)
       -- The original MI Grids algorithm makes it possible that a track would trigger on every beat
       -- If density > ~77%, chaos at 100%, and the random byte rolls full (or if density is higher, chaos can be lower, etc.)
       -- This seems... wrong to me, so I've made sure that if the trigger map says zero, that means no triggers happen.
-      trig_level = trig_level ~= 0 and util.clamp(trig_level + self.part_perturbations[y], 0, 255) or 0
+      trig_level = trig_level ~= 0 and util.clamp(trig_level + self._part_perturbations[y], 0, 255) or 0
       local threshold
       local param_id = y .. "_density"
       threshold = 255 - util.round(params:get(param_id) * 255 / 100)
@@ -397,20 +414,12 @@ function Sequencer:tick()
         velocities[y] = 0
       end
     end
-    engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], 0)
-    if MidiOut:is_midi_out_enabled() then
-      for y=1,7 do
-        MidiOut:note_on(y, ts[y] * math.floor(velocities[y] / 2))
-      end
+    if self._use_engine then
+      -- TODO: don't send trigs for tracks beyond self.num_tracks
+      engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], 0)
     end
-
-    if CrowIO:is_crow_out_enabled() then
-      for y=1,CrowIO:num_outs() do
-        local sel_track = params:get("crow_out_"..y.."_track")
-        if ts[sel_track] == 1 then
-          CrowIO:gate_on(y)
-        end
-      end
+    for y=1,self.num_tracks do
+      self._action(y, ts[y], velocities[y])
     end
 
     if previous_playpos ~= -1 or self.playpos ~= -1 then

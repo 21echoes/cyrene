@@ -121,7 +121,7 @@ local function init_params()
   pages_table[1]:add_params(arcify)
   pages_table[2]:add_params(arcify)
   pages_table[3]:add_params(arcify)
-  for track=1,NUM_TRACKS do
+  for track=1,sequencer.num_tracks do
     local group_name = "Track "..track
     if track == 1 then group_name = "Kick"
     elseif track == 2 then group_name = "Snare"
