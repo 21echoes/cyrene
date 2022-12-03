@@ -185,13 +185,13 @@ local function init_params()
   end
 end
 
-local function init_60_fps_ui_refresh_metro()
+local function init_ui_refresh_metro()
   ui_refresh_metro = metro.init()
   if ui_refresh_metro == nil then
     print("unable to start ui refresh metro")
   end
   ui_refresh_metro.event = UIState.refresh
-  ui_refresh_metro.time = 1/60
+  ui_refresh_metro.time = 1/24
   ui_refresh_metro:start()
 end
 
@@ -220,7 +220,7 @@ local function init_ui()
     end
   }
 
-  init_60_fps_ui_refresh_metro()
+  init_ui_refresh_metro()
 end
 
 function init()
