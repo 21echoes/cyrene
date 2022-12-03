@@ -24,6 +24,7 @@ function MoreDensityUI:new()
   local y1 = 14
   local y2 = 49
   local val_title_gap = font_size - 2
+  -- this relies implicitly on NUM_TRACKS=7
   i.track4_title_label = Label.new({x=x1, y=y1, text="TRK 4", font_size=font_size})
   i.track4_val_label = Label.new({x=x1, y=y1+val_title_gap, font_size=font_size})
   i.track5_title_label = Label.new({x=x2, y=y1, text="TRK 5", font_size=font_size})
@@ -37,28 +38,6 @@ function MoreDensityUI:new()
   i:_update_active_section()
 
   return i
-end
-
-function MoreDensityUI:add_params_for_track(track, arcify)
-  -- PatternAndDensityUI handles tracks 1-3
-  if track < 4 then return end
-  local param_id = track.."_density"
-  local param_name = track..": Density"
-  local val_label = self["track"..track.."_val_label"]
-  params:add {
-    type="number",
-    id=param_id,
-    name=param_name,
-    min=0,
-    max=100,
-    default=50,
-    formatter=function(param) return param.value .. "%" end,
-    action=function(value)
-      val_label.text = value
-      UIState.screen_dirty = true
-    end
-  }
-  arcify:register(param_id)
 end
 
 function MoreDensityUI:enc(n, delta, sequencer)
@@ -85,7 +64,19 @@ function MoreDensityUI:key(n, z, sequencer)
   end
 end
 
+function MoreDensityUI:_update_ui_from_params()
+  -- This relates to how this UI has hard-coded NUM_TRACKS=7
+  for track=4,7 do
+    local val_label = self["track"..track.."_val_label"]
+    val_label.text = params:get(track.."_density")
+  end
+end
+
 function MoreDensityUI:redraw(sequencer)
+  if UIState.params_dirty then
+    self:_update_ui_from_params()
+  end
+
   self.track4_title_label:redraw()
   self.track4_val_label:redraw()
   self.track5_title_label:redraw()

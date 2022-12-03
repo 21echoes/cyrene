@@ -34,69 +34,6 @@ function PatternAndDensityUI:new()
   return i
 end
 
-function PatternAndDensityUI:add_params(arcify)
-  params:add {
-    type="number",
-    id="grids_pattern_x",
-    name="Pattern X",
-    min=0,
-    max=255,
-    default=128,
-    action=function(value) UIState.screen_dirty = true end
-  }
-  arcify:register("grids_pattern_x")
-  params:add {
-    type="number",
-    id="grids_pattern_y",
-    name="Pattern Y",
-    min=0,
-    max=255,
-    default=128,
-    action=function(value) UIState.screen_dirty = true end
-  }
-  arcify:register("grids_pattern_y")
-  params:add {
-    type="number",
-    id="pattern_chaos",
-    name="Chaos",
-    min=0,
-    max=100,
-    default=10,
-    formatter=function(param) return param.value .. "%" end,
-    action=function(value)
-      self.chaos_val_label.text = value
-      UIState.screen_dirty = true
-    end
-  }
-  arcify:register("pattern_chaos")
-end
-
-function PatternAndDensityUI:add_params_for_track(track, arcify)
-  -- MoreDensityUI handles tracks 4 and beyond
-  if track > 3 then return end
-  local param_id = track.."_density"
-  local param_name = track..": Density"
-  local val_label
-  if track == 1 then val_label = self.kick_val_label
-  elseif track == 2 then val_label = self.snare_val_label
-  elseif track == 3 then val_label = self.hat_val_label
-  end
-  params:add {
-    type="number",
-    id=param_id,
-    name=param_name,
-    min=0,
-    max=100,
-    default=50,
-    formatter=function(param) return param.value .. "%" end,
-    action=function(value)
-      val_label.text = value
-      UIState.screen_dirty = true
-    end
-  }
-  arcify:register(param_id)
-end
-
 function PatternAndDensityUI:enc(n, delta, sequencer)
   if self._section == 0 then
     if n == 2 then
@@ -127,7 +64,18 @@ function PatternAndDensityUI:key(n, z, sequencer)
   end
 end
 
+function PatternAndDensityUI:_update_ui_from_params()
+  self.kick_val_label.text = params:get("1_density")
+  self.snare_val_label.text = params:get("2_density")
+  self.hat_val_label.text = params:get("3_density")
+  self.chaos_val_label.text = params:get("pattern_chaos")
+end
+
 function PatternAndDensityUI:redraw(sequencer)
+  if UIState.params_dirty then
+    self:_update_ui_from_params()
+  end
+
   screen.level(self._section == 0 and 15 or 4)
   screen.line_width(2)
   screen.rect(1, 1, 62, 62)

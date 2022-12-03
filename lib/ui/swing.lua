@@ -39,18 +39,6 @@ function SwingUI:new()
   return i
 end
 
-function SwingUI:add_params(arcify)
-  local default_clock_source_action = params:lookup_param("clock_source").action
-  params:set_action("clock_source", function(val)
-    UIState.screen_dirty = true
-    default_clock_source_action(val)
-  end)
-  -- TODO: move swing params in here
-end
-
-function SwingUI:add_params_for_track(track, arcify)
-end
-
 function SwingUI:_get_is_simple_swing()
   return params:get("shuffle_basis") == 1
 end
@@ -114,10 +102,22 @@ local shuffle_feel_names = {
   "CLAVE"
 }
 
-function SwingUI:redraw(sequencer)
+function SwingUI:_update_ui_from_params()
   local is_simple_swing = self:_get_is_simple_swing()
 
   self.type_val_label.text = is_simple_swing and "PCT" or "TUPLET"
+  self.amt_val_label.text = util.round(params:get("swing_amount"), 1) .. "%"
+  self.basis_val_label.text = shuffle_basis_names[params:get("shuffle_basis")]
+  self.feel_val_label.text = shuffle_feel_names[params:get("shuffle_feel")]
+end
+
+function SwingUI:redraw(sequencer)
+  if UIState.params_dirty then
+    self:_update_ui_from_params()
+  end
+
+  local is_simple_swing = self:_get_is_simple_swing()
+
   self.type_title_label:redraw()
   self.type_val_label:redraw()
 
@@ -127,7 +127,6 @@ function SwingUI:redraw(sequencer)
     self.amt_title_label.level = 0
     self.amt_val_label.level = 0
   end
-  self.amt_val_label.text = util.round(params:get("swing_amount"), 1) .. "%"
   self.amt_title_label:redraw()
   self.amt_val_label:redraw()
 
@@ -137,7 +136,6 @@ function SwingUI:redraw(sequencer)
     self.basis_title_label.level = 0
     self.basis_val_label.level = 0
   end
-  self.basis_val_label.text = shuffle_basis_names[params:get("shuffle_basis")]
   self.basis_title_label:redraw()
   self.basis_val_label:redraw()
 
@@ -147,7 +145,6 @@ function SwingUI:redraw(sequencer)
     self.feel_title_label.level = 0
     self.feel_val_label.level = 0
   end
-  self.feel_val_label.text = shuffle_feel_names[params:get("shuffle_feel")]
   self.feel_title_label:redraw()
   self.feel_val_label:redraw()
 end

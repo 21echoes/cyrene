@@ -41,12 +41,6 @@ function PlaybackUI:new()
   return i
 end
 
-function PlaybackUI:add_params(arcify)
-end
-
-function PlaybackUI:add_params_for_track(track, arcify)
-end
-
 function PlaybackUI:enc(n, delta, sequencer)
   if n == 2 then
     params:delta('output_level', delta)

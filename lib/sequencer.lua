@@ -54,8 +54,12 @@ function Sequencer:new(action, num_tracks)
 end
 
 function Sequencer:add_params(arcify)
-  arcify:register("clock_tempo")
-  arcify:register("clock_source")
+  -- TODO: cy_-prefix everything?
+  -- TODO: don't register some more complicated params if is_mod (e.g. 'pattern')
+  if arcify then
+    arcify:register("clock_tempo")
+    arcify:register("clock_source")
+  end
   params:add {
     type="number",
     id="pattern",
@@ -67,7 +71,7 @@ function Sequencer:add_params(arcify)
       UI.grid_dirty = true
     end
   }
-  arcify:register("pattern")
+  if arcify then arcify:register("pattern") end
   params:add {
     type="number",
     id="pattern_length",
@@ -76,7 +80,7 @@ function Sequencer:add_params(arcify)
     max=MAX_PATTERN_LENGTH,
     default=16
   }
-  arcify:register("pattern_length")
+  if arcify then arcify:register("pattern_length") end
   params:add {
     type="option",
     id="grid_resolution",
@@ -90,7 +94,7 @@ function Sequencer:add_params(arcify)
       self:_update_clock_sync_resolution()
     end
   }
-  arcify:register("grid_resolution")
+  if arcify then arcify:register("grid_resolution") end
   params:add {
     type="option",
     id="shuffle_basis",
@@ -107,11 +111,12 @@ function Sequencer:add_params(arcify)
     default=1,
     action=function(val)
       self:update_swing()
+      UI.params_dirty = true
       UI.screen_dirty = true
       UI.arc_dirty = true
     end
   }
-  arcify:register("shuffle_basis")
+  if arcify then arcify:register("shuffle_basis") end
   params:add {
     type="option",
     id="shuffle_feel",
@@ -124,11 +129,12 @@ function Sequencer:add_params(arcify)
     },
     default=1,
     action=function(val)
+      UI.params_dirty = true
       UI.screen_dirty = true
       UI.arc_dirty = true
     end
   }
-  arcify:register("shuffle_feel")
+  if arcify then arcify:register("shuffle_feel") end
   params:add {
     type="control",
     id="swing_amount",
@@ -136,11 +142,12 @@ function Sequencer:add_params(arcify)
     controlspec=swing_amount_spec,
     action=function(val)
       self:update_swing()
+      UI.params_dirty = true
       UI.screen_dirty = true
       UI.arc_dirty = true
     end
   }
-  arcify:register("swing_amount")
+  if arcify then arcify:register("swing_amount") end
   params:add {
     type="option",
     id="cut_quant",
@@ -148,13 +155,145 @@ function Sequencer:add_params(arcify)
     options={"No", "Yes"},
     default=1
   }
-  arcify:register("cut_quant")
+  if arcify then arcify:register("cut_quant") end
   local default_tempo_action = params:lookup_param("clock_tempo").action
   params:set_action("clock_tempo", function(val)
     default_tempo_action(val)
     UI.arc_dirty = true
     UI.screen_dirty = true
   end)
+  local default_clock_source_action = params:lookup_param("clock_source").action
+  params:set_action("clock_source", function(val)
+    UI.screen_dirty = true
+    default_clock_source_action(val)
+  end)
+  params:add {
+    type="number",
+    id="grids_pattern_x",
+    name="Pattern X",
+    min=0,
+    max=255,
+    default=128,
+    action=function(value) UI.screen_dirty = true end
+  }
+  if arcify then arcify:register("grids_pattern_x") end
+  params:add {
+    type="number",
+    id="grids_pattern_y",
+    name="Pattern Y",
+    min=0,
+    max=255,
+    default=128,
+    action=function(value) UI.screen_dirty = true end
+  }
+  if arcify then arcify:register("grids_pattern_y") end
+  params:add {
+    type="number",
+    id="pattern_chaos",
+    name="Chaos",
+    min=0,
+    max=100,
+    default=10,
+    formatter=function(param) return param.value .. "%" end,
+    action=function(value)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register("pattern_chaos") end
+end
+
+function Sequencer:add_params_for_track(track, arcify, pages)
+  local density_param_id = track.."_density"
+  local density_param_name = track..": Density"
+  params:add {
+    type="number",
+    id=density_param_id,
+    name=density_param_name,
+    min=0,
+    max=100,
+    default=50,
+    formatter=function(param) return param.value .. "%" end,
+    action=function(value)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register(density_param_id) end
+
+  local eucl_mode_param_id = track.."_euclidean_enabled"
+  params:add {
+    type="option",
+    id=eucl_mode_param_id,
+    name=track..": Euclidean Mode",
+    options={"Off", "On"},
+    default=1,
+    action=function(value)
+      self:recompute_euclidean_for_track(track)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register(eucl_mode_param_id) end
+
+  local eucl_length_param_id = track.."_euclidean_length"
+  local eucl_trigs_param_id = track.."_euclidean_trigs"
+  params:add {
+    type="number",
+    id=eucl_length_param_id,
+    name=track..": Euclidean Length",
+    min=1,
+    max=MAX_PATTERN_LENGTH,
+    default=8,
+    action=function(value)
+      if value < params:get(eucl_trigs_param_id) then
+        params:set(eucl_trigs_param_id, value)
+      end
+      self:recompute_euclidean_for_track(track)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register(eucl_length_param_id) end
+  params:add {
+    type="number",
+    id=eucl_trigs_param_id,
+    name=track..": Euclidean Count",
+    min=0,
+    max=MAX_PATTERN_LENGTH,
+    default=0,
+    action=function(value)
+      local eucl_length = params:get(eucl_length_param_id)
+      if value > eucl_length then
+        params:set(eucl_trigs_param_id, eucl_length)
+        value = eucl_length
+      end
+      self:recompute_euclidean_for_track(track)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register(eucl_trigs_param_id) end
+  local eucl_rotation_param_id = track.."_euclidean_rotation"
+  params:add {
+    type="number",
+    id=eucl_rotation_param_id,
+    name=track..": Euclidean Rotate",
+    min=0,
+    max=MAX_PATTERN_LENGTH - 1,
+    default=0,
+    action=function(value)
+      local eucl_length = params:get(eucl_length_param_id)
+      if value > eucl_length - 1 then
+        params:set(eucl_rotation_param_id, eucl_length - 1)
+        value = eucl_length - 1
+      end
+      self:recompute_euclidean_for_track(track)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register(eucl_rotation_param_id) end
 end
 
 function Sequencer:initialize()
@@ -310,6 +449,10 @@ function Sequencer:set_grids_xy(patternno, x, y, force)
 end
 
 function Sequencer:recompute_euclidean_for_track(track)
+  local eucl_mode_param_id = track.."_euclidean_enabled"
+  local enabled = params:get(eucl_mode_param_id) == 2
+  if not enabled then return end
+
   local param_id_prefix = EuclideanUI.param_id_prefix_for_track(track)
   local trigs = params:get(param_id_prefix.."_euclidean_trigs")
   local length = params:get(param_id_prefix.."_euclidean_length")
