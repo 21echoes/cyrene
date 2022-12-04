@@ -34,8 +34,10 @@ local function pre_init()
             params:add_group(group_name, 5)
             sequencer:add_params_for_track(track)
         end
+        -- TODO: figure out why this is defered
         matrix:defer_bang("swing_amount")
         clock.run(function()
+            -- TODO: figure out why we wait 8 beats before we consider playing
             clock.sync(8)
             params:lookup_param("cyrene_play"):bang()
         end);
