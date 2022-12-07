@@ -40,35 +40,35 @@ function SwingUI:new()
 end
 
 function SwingUI:_get_is_simple_swing()
-  return params:get("shuffle_basis") == 1
+  return params:get("cy_shuffle_basis") == 1
 end
 
 function SwingUI:enc(n, delta, sequencer)
   if self._section == 0 then
     if n == 2 then
       if delta < 0 then
-        if params:get("shuffle_basis") ~= 1 then
-          self._cached_basis = params:get("shuffle_basis")
+        if params:get("cy_shuffle_basis") ~= 1 then
+          self._cached_basis = params:get("cy_shuffle_basis")
         end
-        params:set("shuffle_basis", 1)
-      elseif params:get("shuffle_basis") == 1 then
-        params:set("shuffle_basis", self._cached_basis)
+        params:set("cy_shuffle_basis", 1)
+      elseif params:get("cy_shuffle_basis") == 1 then
+        params:set("cy_shuffle_basis", self._cached_basis)
       end
     elseif n == 3 then
       if self:_get_is_simple_swing() then
-        params:delta('swing_amount', delta)
+        params:delta("cy_swing_amount", delta)
       end
     end
   elseif self._section == 1 then
-    if params:get("shuffle_basis") > 1 then
+    if params:get("cy_shuffle_basis") > 1 then
       if n == 2 then
-        params:delta('shuffle_basis', delta)
+        params:delta("cy_shuffle_basis", delta)
         -- Don't let section 1 take us back to simple shuffle
-        if params:get("shuffle_basis") == 1 then
-          params:set("shuffle_basis", 2)
+        if params:get("cy_shuffle_basis") == 1 then
+          params:set("cy_shuffle_basis", 2)
         end
       elseif n == 3 then
-        params:delta("shuffle_feel", delta)
+        params:delta("cy_shuffle_feel", delta)
       end
     end
   end
@@ -106,9 +106,9 @@ function SwingUI:_update_ui_from_params()
   local is_simple_swing = self:_get_is_simple_swing()
 
   self.type_val_label.text = is_simple_swing and "PCT" or "TUPLET"
-  self.amt_val_label.text = util.round(params:get("swing_amount"), 1) .. "%"
-  self.basis_val_label.text = shuffle_basis_names[params:get("shuffle_basis")]
-  self.feel_val_label.text = shuffle_feel_names[params:get("shuffle_feel")]
+  self.amt_val_label.text = util.round(params:get("cy_swing_amount"), 1) .. "%"
+  self.basis_val_label.text = shuffle_basis_names[params:get("cy_shuffle_basis")]
+  self.feel_val_label.text = shuffle_feel_names[params:get("cy_shuffle_feel")]
 end
 
 function SwingUI:redraw(sequencer)

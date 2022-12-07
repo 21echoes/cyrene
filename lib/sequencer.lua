@@ -56,8 +56,6 @@ function Sequencer:new(action, num_tracks, is_mod)
 end
 
 function Sequencer:add_params(arcify)
-  -- TODO: cy_-prefix everything?
-
   params:add_separator("Cyrene")
   params:add {
     id="cyrene_version",
@@ -73,7 +71,7 @@ function Sequencer:add_params(arcify)
 
   params:add {
     type="binary",
-    id="cyrene_play",
+    id="cy_play",
     name="Play",
     default=0,
     behavior="toggle",
@@ -87,7 +85,7 @@ function Sequencer:add_params(arcify)
   }
   params:add {
     type="trigger",
-    id="cyrene_reset",
+    id="cy_reset",
     name="Reset",
     action=function(a)
       self:_move_to_start()
@@ -97,7 +95,7 @@ function Sequencer:add_params(arcify)
   if not self._is_mod then
     params:add {
       type="number",
-      id="pattern",
+      id="cy_pattern",
       name="Pattern",
       min=1,
       max=NUM_PATTERNS,
@@ -106,35 +104,35 @@ function Sequencer:add_params(arcify)
         UI.grid_dirty = true
       end
     }
-    if arcify then arcify:register("pattern") end
+    if arcify then arcify:register("cy_pattern") end
   end
   params:add {
     type="number",
-    id="pattern_length",
+    id="cy_pattern_length",
     name="Pattern Length",
     min=1,
     max=MAX_PATTERN_LENGTH,
     default=16
   }
-  if arcify then arcify:register("pattern_length") end
+  if arcify then arcify:register("cy_pattern_length") end
   params:add {
     type="option",
-    id="grid_resolution",
+    id="cy_grid_resolution",
     name="Grid Resolution",
     options={"Quarters", "8ths", "16ths", "32nds"},
     default=3,
     action=function(val)
       if self.grids_x ~= nil and self.grids_y ~= nil then
         local patternno = self:_get_pattern_number()
-        self:set_grids_xy(patternno, params:get("grids_pattern_x"), params:get("grids_pattern_y"), true)
+        self:set_grids_xy(patternno, params:get("cy_grids_pattern_x"), params:get("cy_grids_pattern_y"), true)
       end
       self:_update_clock_sync_resolution()
     end
   }
-  if arcify then arcify:register("grid_resolution") end
+  if arcify then arcify:register("cy_grid_resolution") end
   params:add {
     type="option",
-    id="shuffle_basis",
+    id="cy_shuffle_basis",
     name="Shuffle Basis",
     options={
       "Simple",
@@ -153,10 +151,10 @@ function Sequencer:add_params(arcify)
       UI.arc_dirty = true
     end
   }
-  if arcify then arcify:register("shuffle_basis") end
+  if arcify then arcify:register("cy_shuffle_basis") end
   params:add {
     type="option",
-    id="shuffle_feel",
+    id="cy_shuffle_feel",
     name="Shuffle Feel",
     options={
       "Drunk",
@@ -171,10 +169,10 @@ function Sequencer:add_params(arcify)
       UI.arc_dirty = true
     end
   }
-  if arcify then arcify:register("shuffle_feel") end
+  if arcify then arcify:register("cy_shuffle_feel") end
   params:add {
     type="control",
-    id="swing_amount",
+    id="cy_swing_amount",
     name="Swing Amount",
     controlspec=swing_amount_spec,
     action=function(val)
@@ -184,16 +182,16 @@ function Sequencer:add_params(arcify)
       UI.arc_dirty = true
     end
   }
-  if arcify then arcify:register("swing_amount") end
+  if arcify then arcify:register("cy_swing_amount") end
   if not self._is_mod then
     params:add {
       type="option",
-      id="cut_quant",
+      id="cy_cut_quant",
       name="Quantize Cutting",
       options={"No", "Yes"},
       default=1
     }
-    if arcify then arcify:register("cut_quant") end
+    if arcify then arcify:register("cy_cut_quant") end
   end
 
   local default_tempo_action = params:lookup_param("clock_tempo").action
@@ -210,27 +208,27 @@ function Sequencer:add_params(arcify)
 
   params:add {
     type="number",
-    id="grids_pattern_x",
+    id="cy_grids_pattern_x",
     name="Pattern X",
     min=0,
     max=255,
     default=128,
     action=function(value) UI.screen_dirty = true end
   }
-  if arcify then arcify:register("grids_pattern_x") end
+  if arcify then arcify:register("cy_grids_pattern_x") end
   params:add {
     type="number",
-    id="grids_pattern_y",
+    id="cy_grids_pattern_y",
     name="Pattern Y",
     min=0,
     max=255,
     default=128,
     action=function(value) UI.screen_dirty = true end
   }
-  if arcify then arcify:register("grids_pattern_y") end
+  if arcify then arcify:register("cy_grids_pattern_y") end
   params:add {
     type="number",
-    id="pattern_chaos",
+    id="cy_pattern_chaos",
     name="Chaos",
     min=0,
     max=100,
@@ -241,11 +239,11 @@ function Sequencer:add_params(arcify)
       UI.screen_dirty = true
     end
   }
-  if arcify then arcify:register("pattern_chaos") end
+  if arcify then arcify:register("cy_pattern_chaos") end
 end
 
 function Sequencer:add_params_for_track(track, arcify, pages)
-  local density_param_id = track.."_density"
+  local density_param_id = "cy_"..track.."_density"
   local density_param_name = track..": Density"
   params:add {
     type="number",
@@ -262,7 +260,7 @@ function Sequencer:add_params_for_track(track, arcify, pages)
   }
   if arcify then arcify:register(density_param_id) end
 
-  local eucl_mode_param_id = track.."_euclidean_enabled"
+  local eucl_mode_param_id = "cy_"..track.."_euclidean_enabled"
   params:add {
     type="option",
     id=eucl_mode_param_id,
@@ -276,8 +274,8 @@ function Sequencer:add_params_for_track(track, arcify, pages)
     end
   }
   if arcify then arcify:register(eucl_mode_param_id) end
-  local eucl_length_param_id = track.."_euclidean_length"
-  local eucl_trigs_param_id = track.."_euclidean_trigs"
+  local eucl_length_param_id = "cy_"..track.."_euclidean_length"
+  local eucl_trigs_param_id = "cy_"..track.."_euclidean_trigs"
   params:add {
     type="number",
     id=eucl_length_param_id,
@@ -314,7 +312,7 @@ function Sequencer:add_params_for_track(track, arcify, pages)
     end
   }
   if arcify then arcify:register(eucl_trigs_param_id) end
-  local eucl_rotation_param_id = track.."_euclidean_rotation"
+  local eucl_rotation_param_id = "cy_"..track.."_euclidean_rotation"
   params:add {
     type="number",
     id=eucl_rotation_param_id,
@@ -393,15 +391,15 @@ function Sequencer:_get_pattern_number()
   if self._is_mod then
     return 1
   end
-  return params:get("pattern")
+  return params:get("cy_pattern")
 end
 
 function Sequencer:get_pattern_length()
-  return params:get("pattern_length")
+  return params:get("cy_pattern_length")
 end
 
 function Sequencer:set_pattern_length(pattern_length)
-  params:set("pattern_length", pattern_length)
+  params:set("cy_pattern_length", pattern_length)
 end
 
 function Sequencer:save_patterns()
@@ -434,8 +432,8 @@ function Sequencer:load_patterns()
 
     -- set up our local state in a way that indicates we don't need to reset the grid
     -- (see set_grids_xy)
-    self.grids_x = params:get("grids_pattern_x")
-    self.grids_y = params:get("grids_pattern_y")
+    self.grids_x = params:get("cy_grids_pattern_x")
+    self.grids_y = params:get("cy_grids_pattern_y")
     self._euclidean_kick = params:get(EuclideanUI.param_id_prefix_for_track(1).."_euclidean_enabled") == 2
     self._euclidean_snare = params:get(EuclideanUI.param_id_prefix_for_track(2).."_euclidean_enabled") == 2
     self._euclidean_hat = params:get(EuclideanUI.param_id_prefix_for_track(3).."_euclidean_enabled") == 2
@@ -500,7 +498,7 @@ function Sequencer:set_grids_xy(patternno, x, y, force)
 end
 
 function Sequencer:recompute_euclidean_for_track(track)
-  local eucl_mode_param_id = track.."_euclidean_enabled"
+  local eucl_mode_param_id = "cy_"..track.."_euclidean_enabled"
   local enabled = params:get(eucl_mode_param_id) == 2
   if not enabled then return end
 
@@ -528,7 +526,7 @@ end
 function Sequencer:tick()
   local cut_quant = false
   if not self._is_mod then
-    cut_quant = params:get("cut_quant") == 1
+    cut_quant = params:get("cy_cut_quant") == 1
   end
   if self.queued_playpos and cut_quant then
     self.ticks_to_next = 0
@@ -549,7 +547,7 @@ function Sequencer:tick()
   if (not self.ticks_to_next) or self.ticks_to_next == 0 then
     local patternno = self:_get_pattern_number()
     -- Update the triggers to match the selected MI-Grids X and Y parameters
-    self:set_grids_xy(patternno, params:get("grids_pattern_x"), params:get("grids_pattern_y"))
+    self:set_grids_xy(patternno, params:get("cy_grids_pattern_x"), params:get("cy_grids_pattern_y"))
     -- If there's a queued cut, set it and forget it
     local previous_playpos = self.playpos
     if self.queued_playpos then
@@ -562,13 +560,13 @@ function Sequencer:tick()
     if self.playpos == 0 then
       -- At the start of the pattern, figure out how much to bump up our trigger level by based on the chaos parameter
       for track=1,self.num_tracks do
-        local chaos = math.floor(params:get("pattern_chaos") * 255 / 100 / 4)
+        local chaos = math.floor(params:get("cy_pattern_chaos") * 255 / 100 / 4)
         local random_byte = math.random(0, 255)
         self._part_perturbations[track] = math.floor(random_byte * chaos / 256)
       end
       -- also, reset shuffle vars
-      self._shuffle_basis_index = params:get("shuffle_basis") - 1
-      self._shuffle_feel_index = params:get("shuffle_feel")
+      self._shuffle_basis_index = params:get("cy_shuffle_basis") - 1
+      self._shuffle_feel_index = params:get("cy_shuffle_feel")
       self._ppqn_error = 0
     end
 
@@ -582,13 +580,14 @@ function Sequencer:tick()
       -- This seems... wrong to me, so I've made sure that if the trigger map says zero, that means no triggers happen.
       trig_level = trig_level ~= 0 and util.clamp(trig_level + self._part_perturbations[y], 0, 255) or 0
       local threshold
-      local param_id = y .. "_density"
+      local param_id = "cy_"..y.."_density"
       threshold = 255 - util.round(params:get(param_id) * 255 / 100)
       if trig_level > threshold then
         ts[y] = 1
         velocities[y] = trig_level
         if self._engine_enabled then
           -- Compute the sample volume. Max out at 192
+          -- This param name comes from Ack
           local max_vol = params:get(y.."_vol")
           local sample_velocity = velocities[y] > 192 and 192 or velocities[y]
           local engine_vol = MIN_ENGINE_VOL + ((max_vol - MIN_ENGINE_VOL) * (sample_velocity/192))
@@ -612,7 +611,7 @@ function Sequencer:tick()
     end
     if CrowIO:is_crow_out_enabled() then
       for crow_out=1,CrowIO:num_outs() do
-        local y = params:get("crow_out_"..crow_out.."_track")
+        local y = params:get("cy_crow_out_"..crow_out.."_track")
         if ts[y] == 1 then
           CrowIO:gate_on(crow_out)
         end
@@ -634,7 +633,7 @@ function Sequencer:tick()
 end
 
 function Sequencer:_grid_resolution()
-  local param_grid_resolution = params:get("grid_resolution")
+  local param_grid_resolution = params:get("cy_grid_resolution")
   if param_grid_resolution == 1 then return 4 end
   if param_grid_resolution == 2 then return 8 end
   if param_grid_resolution == 3 then return 16 end
@@ -752,10 +751,10 @@ local basis_to_swing_amt = {
 
 function Sequencer:update_swing()
   local swing_amount
-  if params:get("shuffle_basis") == 1 then
-    swing_amount = params:get('swing_amount')
+  if params:get("cy_shuffle_basis") == 1 then
+    swing_amount = params:get("cy_swing_amount")
   else
-    swing_amount = basis_to_swing_amt[params:get('shuffle_basis')]
+    swing_amount = basis_to_swing_amt[params:get("cy_shuffle_basis")]
   end
   local swing_ppqn = ppqn*swing_amount/100*0.75
   self.even_ppqn = util.round(ppqn+swing_ppqn)

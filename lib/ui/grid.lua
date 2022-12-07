@@ -149,10 +149,10 @@ function Trigs.key_callback(x, y, state, sequencer)
       -- Clicks in rows 1-7 while not holding the alt key toggle the trigger in that slot
       local trig_x = Grid._sequencer_pos(x)
       sequencer:set_trig(
-        params:get("pattern"),
+        params:get("cy_pattern"),
         trig_x,
         y,
-        sequencer:trig_level(params:get("pattern"), trig_x, y) == 0 and 255 or 0
+        sequencer:trig_level(params:get("cy_pattern"), trig_x, y) == 0 and 255 or 0
       )
     end
   end
@@ -161,7 +161,7 @@ end
 function Trigs.refresh_grid_button(x, y, sequencer)
   -- All rows that aren't the bottom row show triggers if active, or the play position otherwise
   local trig_x = Grid._sequencer_pos(x)
-  local trig_level = y ~= 8 and sequencer:trig_level(params:get("pattern"), trig_x, y) or 0
+  local trig_level = y ~= 8 and sequencer:trig_level(params:get("cy_pattern"), trig_x, y) or 0
   if trig_level == 0 then
     -- If there's no trigger in the slot, show the playhead if it's in our column, otherwise show empty
     if trig_x-1 == sequencer.playpos then
@@ -195,7 +195,7 @@ function Probabilities.key_callback(x, y, state, sequencer)
     -- Clicks in rows 1-7 set the trig level based on the row clicked
     local trig_x = Grid._sequencer_pos(x)
     local trig_level = math.floor(255 * (7 - y) / 6)
-    sequencer:set_trig(params:get("pattern"), trig_x, Probabilities.track, trig_level)
+    sequencer:set_trig(params:get("cy_pattern"), trig_x, Probabilities.track, trig_level)
   end
 end
 
@@ -209,7 +209,7 @@ function Probabilities.refresh_grid_button(x, y, sequencer)
   local show_playhead = true
   local trig_x = Grid._sequencer_pos(x)
   if y ~= 8 then
-    local trig_level = sequencer:trig_level(params:get("pattern"), trig_x, Probabilities.track)
+    local trig_level = sequencer:trig_level(params:get("cy_pattern"), trig_x, Probabilities.track)
     local row_for_level = math.floor(-1 * (((trig_level/255) * 6) - 7))
     show_playhead = y ~= row_for_level
   end

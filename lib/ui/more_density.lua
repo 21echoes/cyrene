@@ -43,15 +43,15 @@ end
 function MoreDensityUI:enc(n, delta, sequencer)
   if self._section == 0 then
     if n == 2 then
-      params:delta('4_density', delta)
+      params:delta('cy_4_density', delta)
     elseif n == 3 then
-      params:delta('5_density', delta)
+      params:delta('cy_5_density', delta)
     end
   elseif self._section == 1 then
     if n == 2 then
-      params:delta('6_density', delta)
+      params:delta('cy_6_density', delta)
     elseif n == 3 then
-      params:delta('7_density', delta)
+      params:delta('cy_7_density', delta)
     end
   end
 end
@@ -68,7 +68,7 @@ function MoreDensityUI:_update_ui_from_params()
   -- This relates to how this UI has hard-coded NUM_TRACKS=7
   for track=4,7 do
     local val_label = self["track"..track.."_val_label"]
-    val_label.text = params:get(track.."_density")
+    val_label.text = params:get("cy_"..track.."_density")
   end
 end
 

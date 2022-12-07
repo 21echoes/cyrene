@@ -37,21 +37,21 @@ end
 function PatternAndDensityUI:enc(n, delta, sequencer)
   if self._section == 0 then
     if n == 2 then
-      params:delta('grids_pattern_x', delta)
+      params:delta('cy_grids_pattern_x', delta)
     elseif n == 3 then
-      params:delta('grids_pattern_y', delta)
+      params:delta('cy_grids_pattern_y', delta)
     end
   elseif self._section == 1 then
     if n == 2 then
-      params:delta('1_density', delta)
+      params:delta('cy_1_density', delta)
     elseif n == 3 then
-      params:delta('2_density', delta)
+      params:delta('cy_2_density', delta)
     end
   elseif self._section == 2 then
     if n == 2 then
-      params:delta('3_density', delta)
+      params:delta('cy_3_density', delta)
     elseif n == 3 then
-      params:delta('pattern_chaos', delta)
+      params:delta('cy_pattern_chaos', delta)
     end
   end
 end
@@ -65,10 +65,10 @@ function PatternAndDensityUI:key(n, z, sequencer)
 end
 
 function PatternAndDensityUI:_update_ui_from_params()
-  self.kick_val_label.text = params:get("1_density")
-  self.snare_val_label.text = params:get("2_density")
-  self.hat_val_label.text = params:get("3_density")
-  self.chaos_val_label.text = params:get("pattern_chaos")
+  self.kick_val_label.text = params:get("cy_1_density")
+  self.snare_val_label.text = params:get("cy_2_density")
+  self.hat_val_label.text = params:get("cy_3_density")
+  self.chaos_val_label.text = params:get("cy_pattern_chaos")
 end
 
 function PatternAndDensityUI:redraw(sequencer)
@@ -80,8 +80,8 @@ function PatternAndDensityUI:redraw(sequencer)
   screen.line_width(2)
   screen.rect(1, 1, 62, 62)
   screen.stroke()
-  local x = util.round(60 * params:get("grids_pattern_x") / 255) + 2
-  local y = util.round(60 * params:get("grids_pattern_y") / 255) + 2
+  local x = util.round(60 * params:get("cy_grids_pattern_x") / 255) + 2
+  local y = util.round(60 * params:get("cy_grids_pattern_y") / 255) + 2
   screen.line_width(1)
   screen.circle(x, y, 2)
   screen.fill()

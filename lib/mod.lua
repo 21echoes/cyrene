@@ -44,18 +44,18 @@ local function pre_init()
         CrowIO:add_params(sequencer.num_tracks)
         -- defer_bang for all params with meaningful action side-effects
         -- (effectively, those that put the sequencer in the correct state)
-        matrix:defer_bang("grid_resolution")
-        matrix:defer_bang("shuffle_basis")
-        matrix:defer_bang("swing_amount")
+        matrix:defer_bang("cy_grid_resolution")
+        matrix:defer_bang("cy_shuffle_basis")
+        matrix:defer_bang("cy_swing_amount")
         for track=1,sequencer.num_tracks do
-            matrix:defer_bang(track.."_euclidean_enabled")
-            matrix:defer_bang(track.."_euclidean_length")
-            matrix:defer_bang(track.."_euclidean_trigs")
-            matrix:defer_bang(track.."_euclidean_rotation")
+            matrix:defer_bang("cy_"..track.."_euclidean_enabled")
+            matrix:defer_bang("cy_"..track.."_euclidean_length")
+            matrix:defer_bang("cy_"..track.."_euclidean_trigs")
+            matrix:defer_bang("cy_"..track.."_euclidean_rotation")
         end
         clock.run(function()
             clock.sync(sequencer:get_pattern_length_beats())
-            params:lookup_param("cyrene_play"):bang()
+            params:lookup_param("cy_play"):bang()
         end)
         sequencer:initialize()
 
@@ -67,7 +67,7 @@ mod.hook.register("script_pre_init", "cyrene pre init", pre_init)
 
 mod.hook.register("script_post_cleanup", "stop cyrene", function()
     if cyrene_sequencer ~= nil then
-        params:set("cyrene_play", 0)
+        params:set("cy_play", 0)
         cyrene_sequencer = nil
     end
 end)

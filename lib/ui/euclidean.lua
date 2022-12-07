@@ -90,8 +90,9 @@ function EuclideanUI:_update_ui_from_params()
   self:_update_label_levels()
   self._cached_euclideans = nil
   for track=1,NUM_TRACKS do
-    self.trigs_labels[track].text = params:get(track.."_euclidean_trigs")
-    self.length_labels[track].text = params:get(track.."_euclidean_length")
+    local param_id_prefix = self.param_id_prefix_for_track(track)
+    self.trigs_labels[track].text = params:get(param_id_prefix.."_euclidean_trigs")
+    self.length_labels[track].text = params:get(param_id_prefix.."_euclidean_length")
   end
 end
 
@@ -129,7 +130,7 @@ function EuclideanUI:redraw(sequencer)
 end
 
 function EuclideanUI.param_id_prefix_for_track(track)
-  return track
+  return "cy_"..track
 end
 
 function EuclideanUI:_update_label_levels()
