@@ -41,8 +41,7 @@ local function pre_init()
         -- TODO: figure out why this is defered
         matrix:defer_bang("swing_amount")
         clock.run(function()
-            -- TODO: figure out why we wait 8 beats before we consider playing
-            clock.sync(8)
+            clock.sync(sequencer:get_pattern_length_beats())
             params:lookup_param("cyrene_play"):bang()
         end);
         sequencer:initialize()

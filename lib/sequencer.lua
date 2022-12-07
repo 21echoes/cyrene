@@ -641,6 +641,10 @@ function Sequencer:_grid_resolution()
   return 32
 end
 
+function Sequencer:get_pattern_length_beats()
+  return self:get_pattern_length() * (4 / self:_grid_resolution())
+end
+
 function Sequencer:_update_clock_sync_resolution()
   self._clock_sync_resolution = 4/ppqn/self:_grid_resolution()
 end
