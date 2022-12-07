@@ -262,81 +262,78 @@ function Sequencer:add_params_for_track(track, arcify, pages)
   }
   if arcify then arcify:register(density_param_id) end
 
-  -- TODO: maybe euclid is fine for the mod? Why not?
-  if not self._is_mod then
-    local eucl_mode_param_id = track.."_euclidean_enabled"
-    params:add {
-      type="option",
-      id=eucl_mode_param_id,
-      name=track..": Euclidean Mode",
-      options={"Off", "On"},
-      default=1,
-      action=function(value)
-        self:recompute_euclidean_for_track(track)
-        UI.params_dirty = true
-        UI.screen_dirty = true
+  local eucl_mode_param_id = track.."_euclidean_enabled"
+  params:add {
+    type="option",
+    id=eucl_mode_param_id,
+    name=track..": Euclidean Mode",
+    options={"Off", "On"},
+    default=1,
+    action=function(value)
+      self:recompute_euclidean_for_track(track)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register(eucl_mode_param_id) end
+  local eucl_length_param_id = track.."_euclidean_length"
+  local eucl_trigs_param_id = track.."_euclidean_trigs"
+  params:add {
+    type="number",
+    id=eucl_length_param_id,
+    name=track..": Euclidean Length",
+    min=1,
+    max=MAX_PATTERN_LENGTH,
+    default=8,
+    action=function(value)
+      if value < params:get(eucl_trigs_param_id) then
+        params:set(eucl_trigs_param_id, value)
       end
-    }
-    if arcify then arcify:register(eucl_mode_param_id) end
-    local eucl_length_param_id = track.."_euclidean_length"
-    local eucl_trigs_param_id = track.."_euclidean_trigs"
-    params:add {
-      type="number",
-      id=eucl_length_param_id,
-      name=track..": Euclidean Length",
-      min=1,
-      max=MAX_PATTERN_LENGTH,
-      default=8,
-      action=function(value)
-        if value < params:get(eucl_trigs_param_id) then
-          params:set(eucl_trigs_param_id, value)
-        end
-        self:recompute_euclidean_for_track(track)
-        UI.params_dirty = true
-        UI.screen_dirty = true
+      self:recompute_euclidean_for_track(track)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register(eucl_length_param_id) end
+  params:add {
+    type="number",
+    id=eucl_trigs_param_id,
+    name=track..": Euclidean Count",
+    min=0,
+    max=MAX_PATTERN_LENGTH,
+    default=0,
+    action=function(value)
+      local eucl_length = params:get(eucl_length_param_id)
+      if value > eucl_length then
+        params:set(eucl_trigs_param_id, eucl_length)
+        value = eucl_length
       end
-    }
-    if arcify then arcify:register(eucl_length_param_id) end
-    params:add {
-      type="number",
-      id=eucl_trigs_param_id,
-      name=track..": Euclidean Count",
-      min=0,
-      max=MAX_PATTERN_LENGTH,
-      default=0,
-      action=function(value)
-        local eucl_length = params:get(eucl_length_param_id)
-        if value > eucl_length then
-          params:set(eucl_trigs_param_id, eucl_length)
-          value = eucl_length
-        end
-        self:recompute_euclidean_for_track(track)
-        UI.params_dirty = true
-        UI.screen_dirty = true
+      self:recompute_euclidean_for_track(track)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register(eucl_trigs_param_id) end
+  local eucl_rotation_param_id = track.."_euclidean_rotation"
+  params:add {
+    type="number",
+    id=eucl_rotation_param_id,
+    name=track..": Euclidean Rotate",
+    min=0,
+    max=MAX_PATTERN_LENGTH - 1,
+    default=0,
+    action=function(value)
+      local eucl_length = params:get(eucl_length_param_id)
+      if value > eucl_length - 1 then
+        params:set(eucl_rotation_param_id, eucl_length - 1)
+        value = eucl_length - 1
       end
-    }
-    if arcify then arcify:register(eucl_trigs_param_id) end
-    local eucl_rotation_param_id = track.."_euclidean_rotation"
-    params:add {
-      type="number",
-      id=eucl_rotation_param_id,
-      name=track..": Euclidean Rotate",
-      min=0,
-      max=MAX_PATTERN_LENGTH - 1,
-      default=0,
-      action=function(value)
-        local eucl_length = params:get(eucl_length_param_id)
-        if value > eucl_length - 1 then
-          params:set(eucl_rotation_param_id, eucl_length - 1)
-          value = eucl_length - 1
-        end
-        self:recompute_euclidean_for_track(track)
-        UI.params_dirty = true
-        UI.screen_dirty = true
-      end
-    }
-    if arcify then arcify:register(eucl_rotation_param_id) end
-  end
+      self:recompute_euclidean_for_track(track)
+      UI.params_dirty = true
+      UI.screen_dirty = true
+    end
+  }
+  if arcify then arcify:register(eucl_rotation_param_id) end
 end
 
 function Sequencer:initialize()
