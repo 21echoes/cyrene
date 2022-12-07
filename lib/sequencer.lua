@@ -51,8 +51,6 @@ function Sequencer:new(action, num_tracks, is_mod)
   i._shuffle_feel_index = 1
   i._ppqn_error = 0
   i._engine_enabled = not is_mod
-  i._midi_enabled = not is_mod
-  i._crow_enabled = not is_mod
 
   return i
 end
@@ -367,9 +365,7 @@ end
 function Sequencer:_stop()
   if not self.playing then return end
   self.playing = false
-  if self._midi_enabled then
-    MidiOut:turn_off_active_notes()
-  end
+  MidiOut:turn_off_active_notes(self.num_tracks)
   if self._clock_id ~= nil then
     clock.cancel(self._clock_id)
     self._clock_id = nil
@@ -545,10 +541,8 @@ function Sequencer:tick()
   -- Also track the swing-independent number of ticks for midi clock out messages
   local grid_resolution = self:_grid_resolution()
   local midi_ppqn_divisor = grid_resolution/4
-  if self._midi_enabled then
-    if (not self._raw_ticks) or (self._raw_ticks % midi_ppqn_divisor) == 0 then
-      MidiOut:send_ppqn_pulse()
-    end
+  if (not self._raw_ticks) or (self._raw_ticks % midi_ppqn_divisor) == 0 then
+    MidiOut:send_ppqn_pulse()
   end
   if (not self._raw_ticks) or (self._raw_ticks == 0) then
     self._raw_ticks = ppqn
@@ -581,9 +575,7 @@ function Sequencer:tick()
       self._ppqn_error = 0
     end
 
-    if self._midi_enabled then
-      MidiOut:turn_off_active_notes()
-    end
+    MidiOut:turn_off_active_notes(self.num_tracks)
     local ts = {}
     local velocities = {}
     for y=1,self.num_tracks do
@@ -616,20 +608,16 @@ function Sequencer:tick()
       -- (doesn't matter until non-mod usage can have a diff number of tracks)
       engine.multiTrig(ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], 0)
     end
-    if self._midi_enabled then
-      if MidiOut:is_midi_out_enabled() then
-        for y=1,self.num_tracks do
-          MidiOut:note_on(y, ts[y] * math.floor(velocities[y] / 2))
-        end
+    if MidiOut:is_midi_out_enabled() then
+      for y=1,self.num_tracks do
+        MidiOut:note_on(y, ts[y] * math.floor(velocities[y] / 2))
       end
     end
-    if self._crow_enabled then
-      if CrowIO:is_crow_out_enabled() then
-        for crow_out=1,CrowIO:num_outs() do
-          local y = params:get("crow_out_"..crow_out.."_track")
-          if ts[y] == 1 then
-            CrowIO:gate_on(crow_out)
-          end
+    if CrowIO:is_crow_out_enabled() then
+      for crow_out=1,CrowIO:num_outs() do
+        local y = params:get("crow_out_"..crow_out.."_track")
+        if ts[y] == 1 then
+          CrowIO:gate_on(crow_out)
         end
       end
     end

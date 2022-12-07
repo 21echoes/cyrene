@@ -1,6 +1,8 @@
 local mod = require 'core/mods'
 local matrix = require('matrix/lib/matrix')
 local seq = require('cyrene/lib/sequencer')
+local MidiOut = require('cyrene/lib/midi_out')
+local CrowIO = require('cyrene/lib/crow_io')
 
 local channels = {"cyrene_kick", "cyrene_snare", "cyrene_hat"}
 
@@ -34,6 +36,8 @@ local function pre_init()
             params:add_group(group_name, 5)
             sequencer:add_params_for_track(track)
         end
+        MidiOut:add_params(sequencer.num_tracks)
+        CrowIO:add_params(sequencer.num_tracks)
         -- TODO: figure out why this is defered
         matrix:defer_bang("swing_amount")
         clock.run(function()
