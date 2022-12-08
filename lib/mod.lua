@@ -19,12 +19,16 @@ local function pre_init()
             -- No need to add cyrene, we are already cyrene.
             return
         end
+
+        -- Set up the "outputs": trigs and velocity for each of the first 3 tracks
         matrix:add_binary("cyrene_kick", "Cyrene Kick")
         matrix:add_binary("cyrene_snare", "Cyrene Snare")
         matrix:add_binary("cyrene_hat", "Cyrene Hat")
         matrix:add_unipolar("cyrene_kick_vel", "Cyrene Kick Vel")
         matrix:add_unipolar("cyrene_snare_vel", "Cyrene Snare Vel")
         matrix:add_unipolar("cyrene_hat_vel", "Cyrene Hat Vel")
+
+        -- Set up the sequencer
         local sequencer = seq:new(action, 3, true)
         sequencer:add_params()
         for track=1,sequencer.num_tracks do
@@ -38,13 +42,23 @@ local function pre_init()
         end
         MidiOut:add_params(sequencer.num_tracks)
         CrowIO:add_params(sequencer.num_tracks)
-        -- TODO: figure out why this is defered
+        -- defer_bang for all params with meaningful action side-effects
+        -- (effectively, those that put the sequencer in the correct state)
+        matrix:defer_bang("grid_resolution")
+        matrix:defer_bang("shuffle_basis")
         matrix:defer_bang("swing_amount")
+        for track=1,sequencer.num_tracks do
+            matrix:defer_bang(track.."_euclidean_enabled")
+            matrix:defer_bang(track.."_euclidean_length")
+            matrix:defer_bang(track.."_euclidean_trigs")
+            matrix:defer_bang(track.."_euclidean_rotation")
+        end
         clock.run(function()
             clock.sync(sequencer:get_pattern_length_beats())
             params:lookup_param("cyrene_play"):bang()
-        end);
+        end)
         sequencer:initialize()
+
         cyrene_sequencer = sequencer
     end)
 end
