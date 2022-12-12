@@ -3,8 +3,8 @@
 
 local ControlSpec = require 'controlspec'
 local UI = require "ui"
-local Label = include("lib/ui/util/label")
-local UIState = include('lib/ui/util/devices')
+local Label = require("cyrene/lib/ui/util/label")
+local UIState = require('cyrene/lib/ui/util/devices')
 
 local active_hi_level = 15
 local active_lo_level = 6

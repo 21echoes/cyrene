@@ -3,9 +3,9 @@
 
 local ControlSpec = require 'controlspec'
 local UI = require "ui"
-local Label = include("lib/ui/util/label")
-local UIState = include('lib/ui/util/devices')
-local Euclidean = include('lib/euclidean')
+local Label = require("cyrene/lib/ui/util/label")
+local UIState = require('cyrene/lib/ui/util/devices')
+local Euclidean = require('cyrene/lib/euclidean')
 
 local MAX_PATTERN_LENGTH = 32
 local NUM_TRACKS = 7

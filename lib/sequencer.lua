@@ -1,10 +1,10 @@
 local ControlSpec = require 'controlspec'
-local UI = include('lib/ui/util/devices')
-local DrumMap = include('lib/grids_patterns')
-local Euclidean = include('lib/euclidean')
-local MidiOut = include('lib/midi_out')
-local EuclideanUI = include('lib/ui/euclidean')
-local CrowIO = include('lib/crow_io')
+local UI = require('cyrene/lib/ui/util/devices')
+local DrumMap = require('cyrene/lib/grids_patterns')
+local Euclidean = require('cyrene/lib/euclidean')
+local MidiOut = require('cyrene/lib/midi_out')
+local EuclideanUI = require('cyrene/lib/ui/euclidean')
+local CrowIO = require('cyrene/lib/crow_io')
 
 local PATTERN_FILE = "step.data"
 

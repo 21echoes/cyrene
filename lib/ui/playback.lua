@@ -2,10 +2,10 @@
 -- @classmod PlaybackUI
 
 local UI = require "ui"
-local Label = include("lib/ui/util/label")
-local UIState = include('lib/ui/util/devices')
-local TapTempo = include("lib/ui/util/tap_tempo")
-local MidiOut = include('lib/midi_out')
+local Label = require("cyrene/lib/ui/util/label")
+local UIState = require('cyrene/lib/ui/util/devices')
+local TapTempo = require("cyrene/lib/ui/util/tap_tempo")
+local MidiOut = require('cyrene/lib/midi_out')
 
 local active_hi_level = 15
 local active_lo_level = 6

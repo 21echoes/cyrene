@@ -1,4 +1,4 @@
-local UIState = include('lib/ui/util/devices')
+local UIState = require('cyrene/lib/ui/util/devices')
 
 -- Make sure there's only one copy
 if _Grid ~= nil then return _Grid end
