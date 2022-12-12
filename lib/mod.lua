@@ -56,8 +56,8 @@ local function pre_init()
             params:add_group(group_name, 5)
             sequencer:add_params_for_track(track)
         end
-        MidiOut:add_params(sequencer.num_tracks)
-        CrowIO:add_params(sequencer.num_tracks)
+        MidiOut:add_params(sequencer.num_tracks, nil, true)
+        CrowIO:add_params(sequencer.num_tracks, nil, true)
         -- defer_bang for all params with meaningful action side-effects
         -- (effectively, those that put the sequencer in the correct state)
         matrix:defer_bang("cy_grid_resolution")

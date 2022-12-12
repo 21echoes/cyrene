@@ -18,9 +18,9 @@ local DEFAULT_NOTES = {
   63, -- High Conga
 }
 
-function MidiOut:add_params(num_tracks, arcify)
+function MidiOut:add_params(num_tracks, arcify, is_mod)
   params:add_group("MIDI", 1 + (num_tracks * 2))
-  params:add_option("cy_midi_out", "Send MIDI?", {"Off", "On"}, 2)
+  params:add_option("cy_midi_out", "Send MIDI?", {"Off", "On"}, is_mod and 1 or 2)
   for track=1,num_tracks do
     local note_param_id = "cy_"..track.."_midi_note"
     params:add_number(note_param_id, track..": midi note", 0, 127, DEFAULT_NOTES[track])

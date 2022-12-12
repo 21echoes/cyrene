@@ -55,10 +55,10 @@ function CrowIO:initialize()
   init_inputs()
 end
 
-function CrowIO:add_params(num_tracks, arcify)
+function CrowIO:add_params(num_tracks, arcify, is_mod)
   params:add_group("Crow", 20)
-  params:add_option("cy_crow_out", "Enable Crow Out?", {"Off", "On"}, 2)
-  params:add_option("cy_crow_in", "Enable Crow In?", {"Off", "On"}, 2)
+  params:add_option("cy_crow_out", "Enable Crow Out?", {"Off", "On"}, is_mod and 1 or 2)
+  params:add_option("cy_crow_in", "Enable Crow In?", {"Off", "On"}, is_mod and 1 or 2)
   for track=1, NUM_OUTS do
     local track_param_id = "cy_crow_out_"..track.."_track"
     params:add_number(track_param_id, "out "..track..": track", 1, num_tracks, track)
