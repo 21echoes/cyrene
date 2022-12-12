@@ -4,10 +4,18 @@ local seq = require('cyrene/lib/sequencer')
 local MidiOut = require('cyrene/lib/midi_out')
 local CrowIO = require('cyrene/lib/crow_io')
 
-local channels = {"cyrene_kick", "cyrene_snare", "cyrene_hat"}
+local channels = {
+    "cyrene_1_kick",
+    "cyrene_2_snare",
+    "cyrene_3_hat",
+    "cyrene_4",
+    "cyrene_5",
+    "cyrene_6",
+    "cyrene_7",
+}
 
 local function action(self, chan, trig, velocity)
-    matrix:set(channels[chan], trig)
+    matrix:set(channels[chan].."_trig", trig)
     matrix:set(channels[chan].."_vel", velocity)
 end
 
@@ -21,15 +29,23 @@ local function pre_init()
         end
 
         -- Set up the "outputs": trigs and velocity for each of the first 3 tracks
-        matrix:add_binary("cyrene_kick", "Cyrene Kick")
-        matrix:add_binary("cyrene_snare", "Cyrene Snare")
-        matrix:add_binary("cyrene_hat", "Cyrene Hat")
-        matrix:add_unipolar("cyrene_kick_vel", "Cyrene Kick Vel")
-        matrix:add_unipolar("cyrene_snare_vel", "Cyrene Snare Vel")
-        matrix:add_unipolar("cyrene_hat_vel", "Cyrene Hat Vel")
+        matrix:add_binary("cyrene_1_kick_trig", "Cyrene 1 (Kick)")
+        matrix:add_binary("cyrene_2_snare_trig", "Cyrene 2 (Snare)")
+        matrix:add_binary("cyrene_3_hat_trig", "Cyrene 3 (Hat)")
+        matrix:add_binary("cyrene_4_trig", "Cyrene 4")
+        matrix:add_binary("cyrene_5_trig", "Cyrene 5")
+        matrix:add_binary("cyrene_6_trig", "Cyrene 6")
+        matrix:add_binary("cyrene_7_trig", "Cyrene 7")
+        matrix:add_unipolar("cyrene_1_kick_vel", "Cyrene 1 (Kick) Vel")
+        matrix:add_unipolar("cyrene_2_snare_vel", "Cyrene 2 (Snare) Vel")
+        matrix:add_unipolar("cyrene_3_hat_vel", "Cyrene 3 (Hat) Vel")
+        matrix:add_unipolar("cyrene_4_vel", "Cyrene 4 Vel")
+        matrix:add_unipolar("cyrene_5_vel", "Cyrene 5 Vel")
+        matrix:add_unipolar("cyrene_6_vel", "Cyrene 6 Vel")
+        matrix:add_unipolar("cyrene_7_vel", "Cyrene 7 Vel")
 
         -- Set up the sequencer
-        local sequencer = seq:new(action, 3, true)
+        local sequencer = seq:new(action, 7, true)
         sequencer:add_params()
         for track=1,sequencer.num_tracks do
             local group_name = "Track "..track
