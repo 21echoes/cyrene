@@ -27,6 +27,7 @@ function Sequencer:new(action, num_tracks, is_mod)
   setmetatable(i, self)
   self.__index = self
 
+  i._is_initialized = false
   i._is_mod = is_mod or false
   i.trigs = {}
   i:_init_trigs()
@@ -337,9 +338,11 @@ end
 function Sequencer:initialize()
   self:_update_clock_sync_resolution()
   self:load_patterns()
+  self._is_initialized = true
 end
 
 function Sequencer:_start(immediately)
+  if not self._is_initialized then return end
   if self.playing then return end
   self.playing = true
   if self._clock_id ~= nil then

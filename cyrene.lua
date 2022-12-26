@@ -242,6 +242,12 @@ function init()
 
   sequencer:initialize()
   params:set("cy_play", 1)
+  -- if our params saved as "already playing", then
+  -- setting cy_play=1 doesn't trigger a change,
+  -- so it won't start without us manually calling _start()
+  if not sequencer.playing then
+    sequencer:_start()
+  end
 end
 
 function cleanup()
