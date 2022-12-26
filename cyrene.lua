@@ -85,17 +85,17 @@ engine.name = 'Ack'
 
 local Ack = require 'ack/lib/ack'
 local UI = require 'ui'
-local Sequencer = include('lib/sequencer')
-local MidiOut = include('lib/midi_out')
-local PlaybackUI = include('lib/ui/playback')
-local SwingUI = include('lib/ui/swing')
-local PatternAndDensityUI = include('lib/ui/pattern_and_density')
-local MoreDensityUI = include('lib/ui/more_density')
-local EuclideanUI = include('lib/ui/euclidean')
-local UIState = include('lib/ui/util/devices')
-local GridUI = include('lib/ui/grid')
-local CrowIO = include('lib/crow_io')
-local Arcify = include("lib/arcify")
+local Sequencer = require('cyrene/lib/sequencer')
+local MidiOut = require('cyrene/lib/midi_out')
+local PlaybackUI = require('cyrene/lib/ui/playback')
+local SwingUI = require('cyrene/lib/ui/swing')
+local PatternAndDensityUI = require('cyrene/lib/ui/pattern_and_density')
+local MoreDensityUI = require('cyrene/lib/ui/more_density')
+local EuclideanUI = require('cyrene/lib/ui/euclidean')
+local UIState = require('cyrene/lib/ui/util/devices')
+local GridUI = require('cyrene/lib/ui/grid')
+local CrowIO = require('cyrene/lib/crow_io')
+local Arcify = require("cyrene/lib/arcify")
 
 local launch_version
 
