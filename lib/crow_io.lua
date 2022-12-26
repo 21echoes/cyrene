@@ -31,7 +31,7 @@ local INPUT_PARAMS = {
   }
 }
 
-local function query_input(track)
+function CrowIO:query_input(track)
   c.input[track].stream = function(v)
     if CrowIO:is_crow_in_enabled() then
       local input_param = INPUT_PARAMS[params:get("cy_crow_in_"..track.."_param")]
@@ -44,15 +44,15 @@ local function query_input(track)
   end
 end
 
-local function init_inputs()
+function CrowIO:init_inputs()
   for track=1,NUM_INS do
     c.input[track].mode("stream", 0.1)
-    query_input(track)
+    self:query_input(track)
   end
 end
 
 function CrowIO:initialize()
-  init_inputs()
+  self:init_inputs()
 end
 
 function CrowIO:add_params(num_tracks, arcify, is_mod)

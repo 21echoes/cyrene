@@ -443,7 +443,7 @@ function Sequencer:load_patterns()
   end
 end
 
-local function u8mix(a, b, mix)
+function Sequencer.u8mix(a, b, mix)
   -- Roughly equivalent to ((mix * b + (255 - mix) * a) >> 8), if this is too non-performant
   return util.round(((mix * b) + ((255 - mix) * a)) / 255)
 end
@@ -488,7 +488,7 @@ function Sequencer:set_grids_xy(patternno, x, y, force)
         -- Crossfade between the values at the chosen drum nodes depending on the last 6 bits of x and y
         local x_xfade = (x * 4) % 256 -- x << 2
         local y_xfade = (y * 4) % 256 -- y << 2
-        local trig_level = u8mix(u8mix(a, b, y_xfade), u8mix(c, d, y_xfade), x_xfade)
+        local trig_level = Sequencer.u8mix(Sequencer.u8mix(a, b, y_xfade), Sequencer.u8mix(c, d, y_xfade), x_xfade)
         self:set_trig(patternno, step, track, trig_level)
       end
     end
