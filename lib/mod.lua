@@ -16,7 +16,7 @@ local channels = {
 
 local function action(self, chan, trig, velocity)
     matrix:set(channels[chan].."_trig", trig)
-    matrix:set(channels[chan].."_vel", velocity)
+    matrix:set(channels[chan].."_vel", velocity/255)
 end
 
 local cyrene_sequencer
