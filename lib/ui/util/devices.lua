@@ -169,8 +169,8 @@ function UI.init_screen(config)
 end
 
 -- Make sure there's only one copy
-if _UI == nil then
-  _UI = UI
+if _CyreneUI == nil then
+  _CyreneUI = UI
 end
 
-return _UI
+return _CyreneUI

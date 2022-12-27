@@ -2,10 +2,10 @@
 -- @classmod PlaybackUI
 
 local UI = require "ui"
-local Label = include("lib/ui/util/label")
-local UIState = include('lib/ui/util/devices')
-local TapTempo = include("lib/ui/util/tap_tempo")
-local MidiOut = include('lib/midi_out')
+local Label = require("cyrene/lib/ui/util/label")
+local UIState = require('cyrene/lib/ui/util/devices')
+local TapTempo = require("cyrene/lib/ui/util/tap_tempo")
+local MidiOut = require('cyrene/lib/midi_out')
 
 local active_hi_level = 15
 local active_lo_level = 6
@@ -41,12 +41,6 @@ function PlaybackUI:new()
   return i
 end
 
-function PlaybackUI:add_params(arcify)
-end
-
-function PlaybackUI:add_params_for_track(track, arcify)
-end
-
 function PlaybackUI:enc(n, delta, sequencer)
   if n == 2 then
     params:delta('output_level', delta)
@@ -69,10 +63,10 @@ function PlaybackUI:key(n, z, sequencer)
 
   if n == 2 then
     if sequencer.playing == false then
-      sequencer:move_to_start()
+      params:set("cy_reset", 1)
       UIState.grid_dirty = true
     else
-      sequencer:stop()
+      params:set("cy_play", 0)
       MidiOut:stop()
     end
   elseif n == 3 and z == 1 then
@@ -82,7 +76,7 @@ function PlaybackUI:key(n, z, sequencer)
       else
         MidiOut:continue()
       end
-      sequencer:start()
+      params:set("cy_play", 1)
     end
   end
   UIState.screen_dirty = true

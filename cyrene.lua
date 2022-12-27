@@ -78,24 +78,24 @@
 -- and Playfair, by @tehn
 --
 --
--- v1.8.0 @21echoes
-local current_version = "1.8.0"
+-- v1.9.0 @21echoes
+local current_version = "1.9.0"
 
 engine.name = 'Ack'
 
 local Ack = require 'ack/lib/ack'
 local UI = require 'ui'
-local Sequencer = include('lib/sequencer')
-local MidiOut = include('lib/midi_out')
-local PlaybackUI = include('lib/ui/playback')
-local SwingUI = include('lib/ui/swing')
-local PatternAndDensityUI = include('lib/ui/pattern_and_density')
-local MoreDensityUI = include('lib/ui/more_density')
-local EuclideanUI = include('lib/ui/euclidean')
-local UIState = include('lib/ui/util/devices')
-local GridUI = include('lib/ui/grid')
-local CrowIO = include('lib/crow_io')
-local Arcify = include("lib/arcify")
+local Sequencer = require('cyrene/lib/sequencer')
+local MidiOut = require('cyrene/lib/midi_out')
+local PlaybackUI = require('cyrene/lib/ui/playback')
+local SwingUI = require('cyrene/lib/ui/swing')
+local PatternAndDensityUI = require('cyrene/lib/ui/pattern_and_density')
+local MoreDensityUI = require('cyrene/lib/ui/more_density')
+local EuclideanUI = require('cyrene/lib/ui/euclidean')
+local UIState = require('cyrene/lib/ui/util/devices')
+local GridUI = require('cyrene/lib/ui/grid')
+local CrowIO = require('cyrene/lib/crow_io')
+local Arcify = require("cyrene/lib/arcify")
 
 local launch_version
 
@@ -109,19 +109,8 @@ local arc_device = arc.connect()
 local arcify = Arcify.new(arc_device, false)
 
 local function init_params()
-  params:add_separator()
-  params:add {
-    id="cyrene_version",
-    name="Cyrene Version",
-    type="text",
-  }
-  params:hide(params.lookup["cyrene_version"])
   sequencer:add_params(arcify)
-  -- Only the first 3 pages have any generic params
-  pages_table[1]:add_params(arcify)
-  pages_table[2]:add_params(arcify)
-  pages_table[3]:add_params(arcify)
-  for track=1,NUM_TRACKS do
+  for track=1,sequencer.num_tracks do
     local group_name = "Track "..track
     if track == 1 then group_name = "Kick"
     elseif track == 2 then group_name = "Snare"
@@ -129,9 +118,7 @@ local function init_params()
     end
     params:add_group(group_name, 27)
     -- All the pages together add 5 params per track
-    for i, page in ipairs(pages_table) do
-      pages_table[i]:add_params_for_track(track, arcify)
-    end
+    sequencer:add_params_for_track(track, arcify)
     Ack.add_channel_params(track) -- 22 params
     -- all params except the file are arcifyed
     arcify:register(track.."_start_pos")
@@ -164,8 +151,8 @@ local function init_params()
   arcify:register("reverb_room_size")
   arcify:register("reverb_damp")
   arcify:register("reverb_level")
-  MidiOut:add_params(arcify)
-  CrowIO:add_params(arcify)
+  MidiOut:add_params(sequencer.num_tracks, arcify, false)
+  CrowIO:add_params(sequencer.num_tracks, arcify, false)
   arcify:add_params()
 
   local is_first_launch = not sequencer:has_pattern_file()
@@ -178,20 +165,20 @@ local function init_params()
     _set_sample(6, "audio/x0x/808/808-RS.wav", -16.0)
     _set_sample(7, "audio/x0x/808/808-HC.wav", -20.0)
 
-    arcify:map_encoder_via_params(1, "clock_tempo")
-    arcify:map_encoder_via_params(2, "swing_amount")
-    arcify:map_encoder_via_params(3, "grids_pattern_x")
-    arcify:map_encoder_via_params(4, "grids_pattern_y")
+    arcify:map_encoder_via_params(1, "cy_clock_tempo")
+    arcify:map_encoder_via_params(2, "cy_swing_amount")
+    arcify:map_encoder_via_params(3, "cy_grids_pattern_x")
+    arcify:map_encoder_via_params(4, "cy_grids_pattern_y")
   end
 end
 
-local function init_60_fps_ui_refresh_metro()
+local function init_ui_refresh_metro()
   ui_refresh_metro = metro.init()
   if ui_refresh_metro == nil then
     print("unable to start ui refresh metro")
   end
   ui_refresh_metro.event = UIState.refresh
-  ui_refresh_metro.time = 1/60
+  ui_refresh_metro.time = 1/24
   ui_refresh_metro:start()
 end
 
@@ -220,7 +207,7 @@ local function init_ui()
     end
   }
 
-  init_60_fps_ui_refresh_metro()
+  init_ui_refresh_metro()
 end
 
 function init()
@@ -254,7 +241,13 @@ function init()
   _set_encoder_sensitivities()
 
   sequencer:initialize()
-  sequencer:start()
+  params:set("cy_play", 1)
+  -- if our params saved as "already playing", then
+  -- setting cy_play=1 doesn't trigger a change,
+  -- so it won't start without us manually calling _start()
+  if not sequencer.playing then
+    sequencer:_start()
+  end
 end
 
 function cleanup()
@@ -282,6 +275,7 @@ function redraw()
   screen.clear()
   pages:redraw()
   current_page():redraw(sequencer)
+  UI.params_dirty = false
   screen.update()
 end
 
@@ -304,13 +298,17 @@ end
 
 function clock.transport.start()
   if sequencer then
-    sequencer:start(true)
+    sequencer:_start(true)
+    -- this is a no-op, but keeps the param in sync.
+    -- (We need to call :_start directly above
+    -- so we can pass immediately=true)
+    params:set("cy_play", 1, true)
   end
 end
 
 function clock.transport.stop()
   if sequencer then
-    sequencer:stop()
+    params:set("cy_play", 0)
   end
 end
 
@@ -371,6 +369,9 @@ function _run_migrations()
   end
   if _version_gt("1.7.-1", launch_version) then
     _upgrade_to_1_7_0()
+  end
+  if _version_gt("1.9.-1", launch_version) then
+    _upgrade_to_1_9_0()
   end
 end
 
@@ -436,14 +437,93 @@ function _upgrade_to_1_2_0()
 end
 
 function _upgrade_to_1_6_0()
-  arcify:map_encoder_via_params(1, "swing_amount")
-  arcify:map_encoder_via_params(2, "grids_pattern_x")
-  arcify:map_encoder_via_params(3, "grids_pattern_y")
-  arcify:map_encoder_via_params(4, "pattern_chaos")
+  arcify:map_encoder_via_params(1, "cy_swing_amount")
+  arcify:map_encoder_via_params(2, "cy_grids_pattern_x")
+  arcify:map_encoder_via_params(3, "cy_grids_pattern_y")
+  arcify:map_encoder_via_params(4, "cy_pattern_chaos")
 end
 
 function _upgrade_to_1_7_0()
   _rewrite_pset(function(contents)
     return contents:gsub("audio/common/", "audio/x0x/")
+  end)
+end
+
+-- Taken from norns/lua/core/paramset.lua
+local function unquote(s)
+  return s:gsub('^"', ''):gsub('"$', ''):gsub('\\"', '"')
+end
+local function quote(s)
+  return '"'..s:gsub('"', '\\"')..'"'
+end
+
+-- Basically, prefix cy_ to everything that is ours
+local _version_1_9_0_rename_map = {
+  pattern = "cy_pattern",
+  pattern_length = "cy_pattern_length",
+  grid_resolution = "cy_grid_resolution",
+  shuffle_basis = "cy_shuffle_basis",
+  shuffle_feel = "cy_shuffle_feel",
+  swing_amount = "cy_swing_amount",
+  cut_quant = "cy_cut_quant",
+  grids_pattern_x = "cy_grids_pattern_x",
+  grids_pattern_y = "cy_grids_pattern_y",
+  pattern_chaos = "cy_pattern_chaos",
+  midi_out = "cy_midi_out",
+  crow_out = "cy_crow_out",
+  crow_in = "cy_crow_in",
+}
+for track=1,7 do
+  _version_1_9_0_rename_map[track.."_density"] = "cy_"..track.."_density"
+  _version_1_9_0_rename_map[track.."_euclidean_enabled"] = "cy_"..track.."_euclidean_enabled"
+  _version_1_9_0_rename_map[track.."_euclidean_length"] = "cy_"..track.."_euclidean_length"
+  _version_1_9_0_rename_map[track.."_euclidean_trigs"] = "cy_"..track.."_euclidean_trigs"
+  _version_1_9_0_rename_map[track.."_euclidean_rotation"] = "cy_"..track.."_euclidean_rotation"
+end
+for track=1,7 do
+  _version_1_9_0_rename_map[track.."_midi_note"] = "cy_"..track.."_midi_note"
+  _version_1_9_0_rename_map[track.."_midi_chan"] = "cy_"..track.."_midi_chan"
+end
+for track=1,4 do
+  _version_1_9_0_rename_map["crow_out_"..track.."_track"] = "cy_".."crow_out_"..track.."_track"
+  _version_1_9_0_rename_map["crow_out_"..track.."_mode"] = "cy_".."crow_out_"..track.."_mode"
+  _version_1_9_0_rename_map["crow_out_"..track.."_attack"] = "cy_".."crow_out_"..track.."_attack"
+  _version_1_9_0_rename_map["crow_out_"..track.."_release"] = "cy_".."crow_out_"..track.."_release"
+end
+for track=1,2 do
+  _version_1_9_0_rename_map["crow_in_"..track.."_param"] = "cy_".."crow_in_"..track.."_param"
+end
+
+function _upgrade_to_1_9_0()
+  _rewrite_pset(function(contents)
+    lines = {}
+    for s in contents:gmatch("[^\r\n]+") do
+      table.insert(lines, s)
+    end
+    edited_lines = {}
+    for i, line in ipairs(lines) do
+      if not util.string_starts(line, "--") then
+        local id, value = string.match(line, "(\".-\")%s*:%s*(.*)")
+        if id and value then
+          unquoted_id = unquote(id)
+          renamed_id = _version_1_9_0_rename_map[unquoted_id]
+          -- Some of our params have other params as their values
+          renamed_value = _version_1_9_0_rename_map[value]
+          if renamed_id then
+            line = line:gsub(id, quote(renamed_id), 1)
+          end
+          if renamed_value then
+            -- TODO: do we need to be worried about the global-ness of this gsub?
+            line = line:gsub(value, renamed_value)
+          end
+        end
+      end
+      table.insert(edited_lines, line)
+    end
+    result = ""
+    for i, line in ipairs(edited_lines) do
+      result = result..line.."\n"
+    end
+    return result
   end)
 end

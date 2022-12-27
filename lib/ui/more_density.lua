@@ -3,8 +3,8 @@
 
 local ControlSpec = require 'controlspec'
 local UI = require "ui"
-local Label = include("lib/ui/util/label")
-local UIState = include('lib/ui/util/devices')
+local Label = require("cyrene/lib/ui/util/label")
+local UIState = require('cyrene/lib/ui/util/devices')
 
 local active_hi_level = 15
 local active_lo_level = 6
@@ -24,6 +24,7 @@ function MoreDensityUI:new()
   local y1 = 14
   local y2 = 49
   local val_title_gap = font_size - 2
+  -- this relies implicitly on NUM_TRACKS=7
   i.track4_title_label = Label.new({x=x1, y=y1, text="TRK 4", font_size=font_size})
   i.track4_val_label = Label.new({x=x1, y=y1+val_title_gap, font_size=font_size})
   i.track5_title_label = Label.new({x=x2, y=y1, text="TRK 5", font_size=font_size})
@@ -39,40 +40,18 @@ function MoreDensityUI:new()
   return i
 end
 
-function MoreDensityUI:add_params_for_track(track, arcify)
-  -- PatternAndDensityUI handles tracks 1-3
-  if track < 4 then return end
-  local param_id = track.."_density"
-  local param_name = track..": Density"
-  local val_label = self["track"..track.."_val_label"]
-  params:add {
-    type="number",
-    id=param_id,
-    name=param_name,
-    min=0,
-    max=100,
-    default=50,
-    formatter=function(param) return param.value .. "%" end,
-    action=function(value)
-      val_label.text = value
-      UIState.screen_dirty = true
-    end
-  }
-  arcify:register(param_id)
-end
-
 function MoreDensityUI:enc(n, delta, sequencer)
   if self._section == 0 then
     if n == 2 then
-      params:delta('4_density', delta)
+      params:delta('cy_4_density', delta)
     elseif n == 3 then
-      params:delta('5_density', delta)
+      params:delta('cy_5_density', delta)
     end
   elseif self._section == 1 then
     if n == 2 then
-      params:delta('6_density', delta)
+      params:delta('cy_6_density', delta)
     elseif n == 3 then
-      params:delta('7_density', delta)
+      params:delta('cy_7_density', delta)
     end
   end
 end
@@ -85,7 +64,19 @@ function MoreDensityUI:key(n, z, sequencer)
   end
 end
 
+function MoreDensityUI:_update_ui_from_params()
+  -- This relates to how this UI has hard-coded NUM_TRACKS=7
+  for track=4,7 do
+    local val_label = self["track"..track.."_val_label"]
+    val_label.text = params:get("cy_"..track.."_density")
+  end
+end
+
 function MoreDensityUI:redraw(sequencer)
+  if UIState.params_dirty then
+    self:_update_ui_from_params()
+  end
+
   self.track4_title_label:redraw()
   self.track4_val_label:redraw()
   self.track5_title_label:redraw()
