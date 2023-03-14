@@ -78,8 +78,8 @@
 -- and Playfair, by @tehn
 --
 --
--- v1.9.0 @21echoes
-local current_version = "1.9.0"
+-- v1.9.1 @21echoes
+local current_version = "1.9.1"
 
 engine.name = 'Ack'
 
@@ -248,6 +248,12 @@ function init()
   if not sequencer.playing then
     sequencer:_start()
   end
+
+  -- Working around a strange bug where the param value is changed after boot without changing playback state
+  clock.run(function()
+    clock.sleep(1)
+    params:lookup_param("cy_play").value = sequencer.playing and 1 or 0
+  end)
 end
 
 function cleanup()
