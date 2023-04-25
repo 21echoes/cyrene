@@ -356,7 +356,7 @@ local node_map = {
   { nodes[16], nodes[8], nodes[14], nodes[13], nodes[7] },
   { nodes[19], nodes[15], nodes[5], nodes[6], nodes[4] },
   { nodes[24], nodes[17], nodes[22], nodes[2], nodes[3] },
-  { nodes[25], nodes[20], nodes[18], nodes[1], nodes[23] },
+  { nodes[25], nodes[20], nodes[18], nodes[21], nodes[23] },
 }
 
 return {
